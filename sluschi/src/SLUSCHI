@@ -1,0 +1,157 @@
+#!/bin/csh
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+if ( -e SLUSCHI.out ) then
+  mv SLUSCHI.out SLUSCHI.out_last
+endif
+
+# Generate KPOINTS file
+set kmesh = `getinfo.csh kmesh job.in`
+if ( $kmesh > 0 ) then
+cat - << EOF > KPOINTS
+KPOINTS by SLUSCHI
+0
+Auto
+$kmesh
+EOF
+cp KPOINTS KPOINTS_OPT
+else
+cat - << EOF > KPOINTS
+KPOINTS by SLUSCHI
+1
+R
+0.25 0.25 0.25 1
+EOF
+cat - << EOF > KPOINTS_OPT
+KPOINTS by SLUSCHI
+0
+Auto
+20
+EOF
+endif
+
+if ( -d src_coex ) rm -r src_coex
+mkdir src_coex
+mkdir src_coex/anal
+mkdir src_coex/anal/history
+
+cat - << EOF >> SLUSCHI.out
+====================================================================================================
+Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces (SLUSCHI)
+by Qi-Jun Hong and Axel van de Walle
+EOF
+
+echo "====================================================================================================" >> SLUSCHI.out
+echo Reading job.in...
+getinfo.csh intpol job.in > /dev/null
+if ( $? == 0 ) then
+  @ intpol = `getinfo.csh intpol job.in`
+  if ( $intpol == 1 ) then
+    echo You choose to interpolate the value for TAG temp >> SLUSCHI.out
+    $sluschipath/intpol >> SLUSCHI.out
+  endif
+endif
+
+echo "====================================================================================================" >> SLUSCHI.out
+if ( ! -e Dir_OptUnitCell ) then
+  mkdir Dir_OptUnitCell
+  cd Dir_OptUnitCell
+  $sluschipath/optunitcell >> log.out &
+  echo \*\*\* Unit-cell optimization is running. Please check it is still running in Dir_OptUnitCell. \*\*\* >> ../SLUSCHI.out
+  echo \*\*\* Please read Dir_OptUnitCell/log.out for details. \*\*\* >> ../SLUSCHI.out
+  sleep 5
+  echo === Initial Lattice Vectors === >> ../SLUSCHI.out
+  head -5 POSCAR | tail -4 >> ../SLUSCHI.out
+else
+  cd Dir_OptUnitCell
+endif
+
+# in Dir_OptUnitCell
+@ stop = 0
+while ( $stop == 0 )
+  if ( -e optunitcell_is_done ) then
+    @ stop = 1
+    echo \*\*\* I find that unit-cell optimization completed. \*\*\* >> ../SLUSCHI.out
+    echo === Optimized Lattice Vectors === >> ../SLUSCHI.out
+    head -5 CONTCAR | tail -4 >> ../SLUSCHI.out
+  else
+    sleep 60
+    find .. -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
+  endif
+end # optunitcell is done
+cd ..
+
+echo "====================================================================================================" >> SLUSCHI.out
+getinfo.csh radius job.in > size.in
+$sluschipath/solid.x >> SLUSCHI.out
+cat POSCAR_HEADER POSCAR_STRCT > POSCAR
+
+echo "====================================================================================================" >> SLUSCHI.out
+if ( ! -e Dir_VolSearch ) then
+  mkdir Dir_VolSearch
+  cd Dir_VolSearch
+  $sluschipath/volsearch >> log.out &
+  echo \*\*\* Volume search is running. Please check it is still running in Dir_VolSearch \*\*\* >> ../SLUSCHI.out
+  echo \*\*\* Please read Dir_VolSearch/log.out for details. \*\*\* >> ../SLUSCHI.out
+else
+  cd Dir_VolSearch
+endif
+
+# in Dir_VolSearch
+@ stop = 0
+while ( $stop == 0 )
+  if ( -e volsearch_is_done ) then
+    @ stop = 1
+    echo \*\*\* I find that the volume search completed. \*\*\* >> ../SLUSCHI.out
+    echo === Initial Lattice Vectors === >> ../SLUSCHI.out
+    head -5 1/POSCAR | tail -4 >> ../SLUSCHI.out
+    echo === Optimized Lattice Vectors === >> ../SLUSCHI.out
+    head -5 CONTCAR | tail -4 >> ../SLUSCHI.out
+  else
+    sleep 60
+    find .. -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
+  endif
+end # volsearch is done
+cd ..
+
+@ only = 0
+getinfo.csh thmexp_only job.in > /dev/null
+if ( $? == 0 ) then
+  set only = `getinfo.csh thmexp_only job.in`
+endif
+if ( $only == 1 ) then
+  echo \*\*\* Thermal expansion ONLY. Stopping code... \*\*\*
+  exit
+endif
+
+echo "====================================================================================================" >> SLUSCHI.out
+if ( ! -e Dir_Melt ) then
+  mkdir Dir_Melt
+  cd Dir_Melt
+  $sluschipath/meltcoex >> log.out &
+  echo \*\*\* Preparing coexistence structures... Please check it is still running in Dir_Melt \*\*\* >> ../SLUSCHI.out
+  echo \*\*\* Please read Dir_Melt/log.out for details. \*\*\* >> ../SLUSCHI.out
+else
+  cd Dir_Melt
+endif
+
+# in Dir_Melt
+@ stop = 0
+while ( $stop == 0 )
+  if ( -e meltcoex_is_done ) then
+    echo \*\*\* I find that the coexistence structure preparation completed. \*\*\* >> ../SLUSCHI.out
+    @ stop = 1
+  else
+    sleep 60
+  endif
+end # meltcoex is done
+cd ..
+
+echo "====================================================================================================" >> SLUSCHI.out
+if ( ! -e Dir_CoexRun ) then
+  mkdir Dir_CoexRun
+endif
+cd Dir_CoexRun
+echo \*\*\* Now running coexistence simulations... \*\*\* >> ../SLUSCHI.out
+$sluschipath/coexrun >> ../SLUSCHI.out &
