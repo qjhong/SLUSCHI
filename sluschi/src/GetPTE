@@ -1,4 +1,0 @@
-#!/bin/csh
-grep T OSZICAR | awk '{print $3}' > temperature.out
-grep pressure OUTCAR | grep Pullay | awk '{print $4}' > pressure.out
-grep T OSZICAR | awk '{print $5}' > energy.out
