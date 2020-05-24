@@ -1,0 +1,222 @@
+#!/bin/csh
+
+cd ..
+cp INCAR KPOINTS POSCAR POTCAR jobsub job.in Dir_VolSearch
+cd Dir_VolSearch
+
+#liquid?
+getinfo.csh thmexp_liq job.in > /dev/null
+if ( $? == 0 ) then
+  @ flag_liq = `getinfo.csh thmexp_liq job.in`
+else
+  @ flag_liq = 0
+endif
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+set vaspcmd = `getinfo.csh vaspcmd job.in`
+set temp = `getinfo.csh temp job.in`
+sed -i '/NBANDS/d' INCAR
+set sigma = `awk -v a="0.000086" -v b=$temp 'BEGIN{print (b*a)}'`
+#$sluschipath/UpdateINCAR PREC normal
+$sluschipath/UpdateINCAR SIGMA $sigma
+$sluschipath/UpdateINCAR TEBEG $temp 
+$sluschipath/UpdateINCAR TEEND $temp 
+$sluschipath/UpdateINCAR NSW 80
+$sluschipath/UpdateINCAR SMASS 0 
+if ( $flag_liq == 1 ) then
+  getinfo.csh thmexp_liq_temp job.in > /dev/null
+  if ( $? == 0 ) then
+    set temp = `getinfo.csh thmexp_liq_temp job.in`
+  else
+    set temp = `awk 'BEGIN{print '$temp'*2}'`
+  endif
+  $sluschipath/UpdateINCAR TEBEG $temp
+  $sluschipath/UpdateINCAR TEEND $temp
+endif
+
+# submit the first job
+set nstep=1
+# initialize flags
+@ stopflag = 0
+@ count = 0
+
+$vaspcmd jobsub >> jobsub.log
+@ flag_gamma = 0
+
+while ($stopflag == 0)
+
+  sleep 60 ############################################################
+
+  if ( -e OUTCAR ) then
+  grep -s "Total CPU" OUTCAR > /dev/null
+  if (! $?) then # Job is done
+
+    echo ====== JOB $nstep DONE ======
+
+    @ natom = `grep 'NIONS =' OUTCAR | tail -1 | awk '{print $12}'`
+    echo $natom > natom
+
+    if ( $count == 0 ) then
+      echo --- Calculate Pulay stress... ---
+      $sluschipath/PressurePulay > /dev/null
+    endif
+    @ count = $count + 1
+    if ( $count == 10 ) @ count = 0
+    set pressure_Pulay = `cat pressure_Pulay.out`
+
+    $sluschipath/GetPTE # get P, T and E
+    grep 'in kB' OUTCAR | grep -v CPU | grep -v cpu | awk '{print $3,$4,$5,$6,$7,$8}' > pressure3.out # get Pxx, Pyy, Pzz, Pxy, Pyz, Pzx
+    set volume=`grep volume/ion OUTCAR | awk '{print $5}'`
+    set temp=`grep TEEND INCAR | awk '{print $3}'`
+    set pressure_kinetic=`awk -v k="1.38e-23" -v a="1.0e22" -v b=$temp -v c=$volume 'BEGIN{print (k*b/c*a)}'`
+    echo $pressure_kinetic > pressure_kinetic.out
+    grep 'volume of cell' OUTCAR | awk '{print $5}' >> volume.out
+
+    set pressure_target = `getinfo.csh press job.in`
+    echo $pressure_target  > pressure_target.out
+    
+    $sluschipath/PressureAvg.x 
+
+    head -5 POSCAR | tail -3 > lattice.out
+    set v1 = `head -1 lattice.out`
+    set v2 = `head -2 lattice.out | tail -1`
+    set v3 = `head -3 lattice.out | tail -1`
+    rm lattice.out
+    set p = `cat pressure3_total.out`
+    set pxx = `echo $p | awk '{print $1}'`
+    set pyy = `echo $p | awk '{print $2}'`
+    set pzz = `echo $p | awk '{print $3}'`
+    set pxy = `echo $p | awk '{print $4}'`
+    set pyz = `echo $p | awk '{print $5}'`
+    set pxz = `echo $p | awk '{print $6}'`
+    echo $v1 $v2 $v3 $p >> lattice_pressure_history.out
+    echo Pulay stress $pressure_Pulay, kinetic pressure $pressure_kinetic, pressure target $pressure_target kbar.
+    echo "--- LATTICE VECTORS --- \t\t --- PRESSURE ---"
+    echo "$v1 \t $pxx $pxy $pxz" 
+    echo "$v2 \t $pxy $pyy $pyz"
+    echo "$v3 \t $pxz $pyz $pzz"
+
+    set navg_pressure = `getinfo.csh navg job.in`
+    set factor_divide = `getinfo.csh factor job.in`
+    echo $navg_pressure > param.in
+    echo $factor_divide >> param.in
+    $sluschipath/DetermineSize.x
+    
+    echo --- ADJUST INCAR TAGS ---
+    $sluschipath/AdjustPOTIM
+    $sluschipath/AdjustNBANDS
+    $sluschipath/AdjustBMIX
+    mkdir $nstep
+    cp INCAR KPOINTS POSCAR OSZICAR $nstep
+    @ NKPTS = `grep NKPTS OUTCAR | awk '{print $4}'`
+    @ gamma = `getinfo.csh gamma_possible job.in`
+    if ( $NKPTS == 1 && $gamma == 1 && -e ../jobsub_gamma ) then
+      if ( $flag_gamma == 0 ) then
+        cp IBZKPT KPOINTS
+        rm WAVECAR
+        @ flag_gamma = 1
+      endif
+      cp ../jobsub_gamma jobsub
+    else
+      cp ../jobsub .
+    endif
+    mv OUTCAR $nstep
+    touch OUTCAR
+
+    getinfo.csh thmexp_cnvg job.in > /dev/null
+    if ( $? == 0 ) then
+      getinfo.csh thmexp_cnvg job.in > thmexp.in
+    else
+      echo 20.0 > thmexp.in
+    endif
+    getinfo.csh thmexp_max job.in > /dev/null
+    if ( $? == 0 ) then
+      @ maxstep = `getinfo.csh thmexp_max job.in`
+    else
+      @ maxstep = 5
+    endif
+    getinfo.csh thmexp_min job.in > /dev/null
+    if ( $? == 0 ) then
+      @ minstep = `getinfo.csh thmexp_min job.in`
+    else
+      @ minstep = 1
+    endif
+    $sluschipath/VolSearchStop.x
+    @ stopflag = `cat VolSearchStop.out`
+    if ( -d $maxstep )  @ stopflag = 1
+    if ( ! -d $minstep )  @ stopflag = 0
+    if ( $stopflag == 1 ) then
+      if ( $flag_liq == 1 ) then
+      $sluschipath/collect.csh OUTCAR
+      grep 'energy  without entropy' OUTCAR_collect | awk '{print $4}' > for_avg
+      $sluschipath/avg_std.x
+      echo You may be interested in the average energy, especially for the calculation of fusion heat.
+      echo For detailed theory, read \"Understanding Molecular Simulations, from Algorithms to Applications\" by D. Frenkel and B. Smit, Page 525-530
+      echo To obtain average energy and standard error, locate \(N,B,P\) such that...
+      echo 1. N is small enough, i.e., the MD trajectory is properly truncated.
+      echo 2. the P vs. B curve reaches a plateau, i.e., B is large enough, much larger than correlation time.
+      echo Last N MD steps for average, B \(size of block\), nB \(number of blocks\), P \(look for plateau of P vs. B \), Average Total Energy without electronic entropy, standard error
+      cat avg_std_detail.out
+      @ navg1 = `head -1 avg_std.out | awk '{print $1}'`
+      set avg1 = `head -1 avg_std.out | awk '{print $6}'`
+      set std1 = `head -1 avg_std.out | awk '{print $7}'`
+      echo Based on last $navg1 steps, the energy is $avg1 +/- $std1 eV per atom.
+      @ navg2 =  `head -2 avg_std.out | tail -1 |  awk '{print $1}'`
+      set avg2 = `head -2 avg_std.out | tail -1 |  awk '{print $6}'`
+      set std2 = `head -2 avg_std.out | tail -1 |  awk '{print $7}'`
+      echo Based on last $navg2 steps, the energy is $avg2 +/- $std2 eV per atom.
+      @ navg3 =  `tail -1 avg_std.out | awk '{print $1}'`
+      set avg3 = `tail -1 avg_std.out | awk '{print $6}'`
+      set std3 = `tail -1 avg_std.out | awk '{print $7}'`
+      echo Based on last $navg3 steps, the energy is $avg3 +/- $std3 eV per atom.
+      echo Choose a value properly: 1. steps as many as possible 2. energy converges
+      mv avg_std.out avg_std_energy.out
+      mv avg_std_detail.out avg_std_detail_energy.out
+      $sluschipath/Converge
+      set en_correction = `cat energy_converge.out`
+      set avg1 = `awk 'BEGIN{print '$avg1'+'$en_correction'}'`
+      set avg2 = `awk 'BEGIN{print '$avg2'+'$en_correction'}'`
+      set avg3 = `awk 'BEGIN{print '$avg3'+'$en_correction'}'`
+      echo Based on last $navg1 steps, the energy is $avg1 +/- $std1 eV per atom.
+      echo Based on last $navg2 steps, the energy is $avg2 +/- $std2 eV per atom.
+      echo Based on last $navg3 steps, the energy is $avg3 +/- $std3 eV per atom.
+      echo Choose a value properly: 1. steps as many as possible 2. energy converges
+      cp volume.out for_avg
+      $sluschipath/avg_std.x
+      @ navg1 = `head -1 avg_std.out | awk '{print $1}'`
+      set avg1 = `head -1 avg_std.out | awk '{print $6}'`
+      set std1 = `head -1 avg_std.out | awk '{print $7}'`
+      echo Based on last $navg1 steps, the volume is $avg1 +/- $std1 Ang3 per atom.
+      @ navg2 =  `head -2 avg_std.out | tail -1 |  awk '{print $1}'`
+      set avg2 = `head -2 avg_std.out | tail -1 |  awk '{print $6}'`
+      set std2 = `head -2 avg_std.out | tail -1 |  awk '{print $7}'`
+      echo Based on last $navg2 steps, the volume is $avg2 +/- $std2 Ang3 per atom.
+      @ navg3 =  `tail -1 avg_std.out | awk '{print $1}'`
+      set avg3 = `tail -1 avg_std.out | awk '{print $6}'`
+      set std3 = `tail -1 avg_std.out | awk '{print $7}'`
+      echo Based on last $navg3 steps, the volume is $avg3 +/- $std3 Ang3 per atom.
+      echo Choose a value properly: 1. steps as many as possible 2. volume converges
+      mv avg_std.out avg_std_volume.out
+      mv avg_std_detail.out avg_std_detail_volume.out
+      endif
+    else
+      if ( $flag_liq == 1 && $nstep == 6 ) then
+        set temp = `getinfo.csh temp job.in`
+        $sluschipath/UpdateINCAR TEBEG $temp
+        $sluschipath/UpdateINCAR TEEND $temp
+      endif
+      head -2 CONTCAR > POSCAR
+      cat lattice_predict.out >> POSCAR
+      tail -n+6 CONTCAR >> POSCAR
+      $vaspcmd jobsub >> jobsub.log
+      set nstep = `expr $nstep + 1`
+      echo Job $nstep submitted. Waiting for job $nstep to finish... 
+    endif
+  endif
+  endif
+end
+echo total pressure is $p kbar, which meets the target $pressure_target within 20 kbar. Volume search completed.
+echo killing script...
+cp CONTCAR $nstep/OUTCAR ..
+cp INCAR ..
+touch volsearch_is_done

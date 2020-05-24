@@ -1,0 +1,205 @@
+program NextJob
+implicit none
+! This code reads
+! 1. jobs_results.out: temp, nsolid, nliquid.
+! 2. confident.in: 0 or 1. Whether you are confident (1) or not (0) about MP you guess.
+! 3. MPFit.out (optional): if MPFit was done previously, read melting temperature (MP) and error (STD_MP).
+! 4. ErrorTarget.in: the fitting error specified in job.in.
+! This code outputs
+! 1. jobs_to_run.out: temp, nsum
+! 2. FlagStop.out: 1 STD_MP < ErrorTarget, STOP!
+  integer nwork
+  double precision,allocatable,dimension(:)::temp
+  integer,allocatable,dimension(:)::nsolid,nliquid,nsum
+  integer max_nsum
+
+  integer i,j
+  integer flag_confident
+  double precision delt
+  integer ncount,i_transit
+  double precision MP,STD_MP,STD_TARGET
+  double precision dT
+  integer inext
+  double precision maxgap
+
+  open(7,file='jobs_results.out')
+  nwork=0
+  do while (.true.)
+    read(7,*,err=147,end=147)
+    nwork = nwork+1
+  enddo
+  147 continue
+  rewind 7
+  allocate(temp(nwork),nsolid(nwork),nliquid(nwork),nsum(nwork))
+  do i=1,nwork
+    read(7,*) temp(i),nsolid(i),nliquid(i)
+    nsum(i) = nsolid(i) + nliquid(i)
+  enddo
+  close(7)
+  max_nsum = 0
+  do i=1,nwork
+    if (nsum(i)>max_nsum) max_nsum = nsum(i)
+  enddo
+
+  open(8,file='jobs_to_run.out')
+  if (max_nsum == 1) then
+    ! Search Mode
+    ! determine step size: if not confident, dT = 800 K; else, dT = 100 K
+    open(9,file='confident.in')
+    read(9,*) flag_confident
+    close(9)
+    if (flag_confident==1) then 
+      delt = 100.d0
+    else
+      delt = 800.d0
+    endif
+    ! extend temperature region if
+    ! (1) there is liquid in lowest temperature  or
+    ! (2) there is solid in highest temperature 
+    if ( nliquid(1) > 0 ) then
+      write(8,'(F12.1,A)') temp(1)-delt,' 1'
+    endif
+    if ( nsolid(nwork) > 0 ) then
+      write(8,'(F12.1,A)') temp(nwork)+delt,' 1'
+    endif
+    ! T(i-1) is solid, T(i) is liquid, check T(i)-T(i-1). 
+    ! If DelT = 100 K, search is done. Else, add point in between
+    do i=2,nwork
+      if (nsolid(i-1)>0 .and. nliquid(i)>0) then
+        if (temp(i)-temp(i-1)<101.d0) then
+          write(8,*) temp(i-1),' 4'
+          write(8,*) temp(i),' 4'
+        else
+          write(8,*) (temp(i-1)+temp(i))/2.d0,' 1'
+        endif
+        exit
+      endif
+    enddo
+  else
+    delt=100.d0
+    ! extend temperature region if
+    ! (1) there is liquid in lowest temperature  or
+    ! (2) there is solid in highest temperature 
+    if ( nliquid(1) > 0 ) then
+      write(8,*) temp(1)-delt,' 1'
+      goto 999
+    endif
+    if ( nsolid(nwork) > 0 ) then
+      write(8,*) temp(nwork)+delt,' 1'
+      goto 999
+    endif
+    ! if there is a solid-liquid transition
+    do i=2,nwork
+      if (nsolid(i-1)>0 .and. nliquid(i)>0 .and. (nsum(i-1)<4 .or. nsum(i)<4) ) then
+        if (temp(i)-temp(i-1)<101.d0) then
+          write(8,*) temp(i-1),' 4'
+          write(8,*) temp(i),' 4'
+        else
+          if (nsum(i-1)<4) then
+            write(8,*) temp(i)-delt,' 4'
+          else
+            write(8,*) temp(i-1)+delt,' 4'
+          endif
+        endif
+        goto 999
+      endif
+    enddo
+    ! Strategy: T': T with fractional distribution (not 0 or 1)
+    ! 1. for all T', run at least 4 duplicates
+    ! 2. if number of T' <= 1, run one more T in between
+    ! 2.5 if number of T' >= 2, fit
+    ! 3. T' closest to MP, run more
+    ! Case 1. for all T', run at least 4 duplicates
+    do i=2,nwork-1
+      if (nsolid(i)>0 .and. nliquid(i)>0 .and. (nsum(i-1)<4 .or. nsum(i)<4 .or. nsum(i+1)<4) ) then
+        write(8,*) temp(i)-delt,' 4'
+        write(8,*) temp(i),' 4'
+        write(8,*) temp(i)+delt,' 4'
+        goto 999
+      endif
+    enddo
+    ! Case 2. if number of T' <= 1, run one more T in between
+    ncount = 0
+    do i=2,nwork
+      if (nsolid(i)>0 .and. nliquid(i)>0) then
+        ncount = ncount + 1
+      endif
+      if (nliquid(i-1)==0 .and. nliquid(i)>0) then
+        i_transit = i
+      endif
+    enddo
+    if (ncount == 0) then
+      write(8,*) (temp(i_transit-1)+temp(i_transit))/2.d0,' 4'
+      goto 999
+    elseif (ncount == 1) then
+      if (nliquid(i_transit)<=2) then
+        write(8,*) (temp(i_transit)+temp(i_transit+1))/2.d0,' 4'
+      elseif (nliquid(i_transit)==3) then
+        write(8,*) (temp(i_transit-1)+temp(i_transit))/2.d0,' 4'
+      endif
+      goto 999
+    endif
+    ! 3. T' closest to MP, run more
+    open(10,file='MPFit.out')
+    read(10,*) MP,STD_MP
+    close(10)
+    open(11,file='ErrorTarget.in')
+    read(11,*) STD_TARGET
+    close(11)
+    if (STD_MP > STD_TARGET) then
+      ! 3.1 If dabs(T1-MP)<dabs(T2-MP), nsum(at T1)>=nsum(at T2). This is reasonable.
+      do i=1,nwork
+        do j=1,nwork
+          if (dabs(temp(j)-MP)>dabs(temp(i)-MP) .and. nsum(j) > nsum(i)) then
+            write(8,*) temp(i),nsum(j)
+            goto 999
+          endif
+        enddo
+      enddo
+      ! 3.2 run max_nsum duplicates for closest T'
+      dT = 10000.d0
+      inext = 100
+      do i=1,nwork
+        if (nsolid(i)>0 .and. nliquid(i)>0 .and. nsum(i)<max_nsum .and. dabs(temp(i)-MP) < dT) then
+          dT = dabs(temp(i)-MP)
+          inext = i
+        endif
+      enddo 
+      if (inext < 100) then ! there exists T', such that nsum(inext)<max_nsum
+        write(8,*) temp(inext),max_nsum
+        goto 999
+      endif
+      ! 3.3 increase max_nsum
+      if (max_nsum < 16) then ! these doesn't exist T', that nsum(i) < max_nsum
+      dT = 10000.d0
+      inext = 100
+      do i=1,nwork
+        if (dabs(temp(i)-MP) < dT) then
+          dT = dabs(temp(i)-MP)
+          inext = i
+        endif
+      enddo 
+      write(8,*) temp(inext),max_nsum*2 ! number of duplicates: 4->8->16
+      goto 999
+      endif
+      ! 3.4 add temp in between
+      maxgap = 0.d0
+      do i=2,nwork ! For all T', # of duplicates == 16
+        if ( (nsolid(i-1)>0 .and. nliquid(i-1)>0 .or. nsolid(i)>0 .and. nliquid(i)>0) .and. temp(i)-temp(i-1)>maxgap) then
+          maxgap = temp(i)-temp(i-1)
+          inext = i
+        endif
+      enddo 
+      write(8,*) (temp(inext-1)+temp(inext))/2.d0,' 4' ! Add more T in between
+    else
+      open(12,file='FlagStop.out')
+      write(12,*) '1'
+      close(12)
+    endif
+    
+  endif 
+
+  999 continue
+  close(8)
+    
+end program

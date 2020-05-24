@@ -1,0 +1,55 @@
+#!/bin/csh
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+set vaspcmd = `getinfo.csh vaspcmd job.in`
+
+if ( -d Dir_Pressure_Pulay ) rm -r Dir_Pressure_Pulay
+
+mkdir Dir_Pressure_Pulay
+cp INCAR KPOINTS CONTCAR POTCAR jobsub Dir_Pressure_Pulay
+cd Dir_Pressure_Pulay
+mv CONTCAR POSCAR
+mkdir normal high
+cp INCAR KPOINTS POSCAR POTCAR jobsub normal
+cd normal
+
+$sluschipath/UpdateINCAR IBRION -1
+$sluschipath/UpdateINCAR NSW 1
+$vaspcmd jobsub >> jobsub.log
+
+@ jobdone = 0
+while ( ! $jobdone )
+  sleep 30
+
+  if ( -e OUTCAR ) then
+    grep -s "Total CPU" OUTCAR > /dev/null
+    if (! $?) then # Job is done
+      @ jobdone = 1
+      set P_normal = `grep pressure OUTCAR | grep Pullay | awk '{print $4}'`
+    endif
+  endif
+end
+
+cp * ../high
+cd ../high
+$sluschipath/UpdateINCAR PREC high
+sed -i '/ENCUT/d' INCAR
+$vaspcmd jobsub >> jobsub.log
+rm OUTCAR
+
+@ jobdone = 0
+while ( ! $jobdone )
+  sleep 30
+
+  if ( -e OUTCAR ) then
+    grep -s "Total CPU" OUTCAR > /dev/null
+    if (! $?) then # Job is done
+      @ jobdone = 1
+      set P_high = `grep pressure OUTCAR | grep Pullay | awk '{print $4}'`
+    endif
+  endif
+end
+
+cd ../..
+rm -r Dir_Pressure_Pulay
+set P_normal_minus = `awk 'BEGIN{print '$P_normal'*-1}'`
+awk 'BEGIN{print '$P_high'+'$P_normal_minus'}' > pressure_Pulay.out

@@ -1,0 +1,43 @@
+#!/bin/csh
+
+echo Interpolate melting point from elements...
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+# number of elements
+@ n_elmt = `grep TITEL POTCAR  | wc -l`
+grep TITEL POTCAR | awk '{print $4}' | cut -d_ -f1 > elements.out
+
+# vasp5 or vasp4
+set element = `head -1 elements.out`
+@ vasp5 = 0
+cp POSCAR POSCAR_tmp
+head -6 POSCAR_tmp | tail -1 | grep $element > /dev/null
+if ( $? == 0 ) @ vasp5 = 1
+if ( $vasp5 == 1 ) sed -i '6d' POSCAR_tmp
+head -6 POSCAR_tmp | tail -1 > natoms.out
+rm POSCAR_tmp
+
+# get element, number of atoms
+set numerator = 0
+set denominator = 0
+@ count = 0
+while ( $count < $n_elmt )
+  @ count = $count + 1
+  set element = `head -$count elements.out | tail -1`
+  set natoms = `cat natoms.out | awk '{print $'$count'}'`
+  set mp = `grep ' '$element' ' $sluschipath/mp.dat | awk '{print $3}'`
+  #echo $element $natoms $mp
+
+  set numerator = `awk 'BEGIN {print '$numerator' + '$mp'*'$natoms'}'`
+  set denominator = `awk 'BEGIN {print '$denominator' + '$natoms'}'`
+  set temp = `awk 'BEGIN {print '$numerator'/'$denominator'}'`
+  #echo $temp
+end
+
+rm elements.out natoms.out
+
+sed -i '/temp/d' job.in
+echo temp = $temp >> job.in
+
+echo Overwrite TAG temp in job.in... TAG temp is now set to $temp

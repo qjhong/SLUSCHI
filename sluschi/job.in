@@ -1,0 +1,41 @@
+boldsample = 1          # "Bold sampling" mode: SLUSCHI launches MD aggressively. This strategy significantly reduces the physical time of calculations, though it may slightly increase computer cost.
+nsample = 3             # "Bold sampling" mode parameter. Start new MD samples if number of active samples < $nsample
+
+intpol = 0		# linear interpolate "temp"
+temp = 3000.0		# initial guess of melting temperature
+
+press = 0.0		# pressure condition
+navg = 3		# "navg"*80 MD steps to calc average pressure
+factor = 10000.0	# adjust volume according to pressure
+thmexp_cnvg = 20.0      # criterion for thermal expansion convergence
+thmexp_max = 5          # maximum number of steps (80*n) for thermal expansion
+thmexp_min = 1          # minimum number of steps (80*n) for thermal expansion
+thmexp_only = 0         # calculates thermal expansion only. WILL NOT CALC MELTING POINT
+thmexp_liq = 0          # calculate thermal expansion for liquid. set to 1 with thmexp_only=1.
+thmexp_liq_temp = 10000 # first 5x80 MD steps at this temperature to melt the solid. Then at "temp".
+
+confident = 0
+error = 50.0
+
+vaspcmd = sbatch
+LongWT = 0		# run a job with very long walltime and skip waiting in the queue. switch it on if having access. prepare jobsub_LongWT
+
+kmesh = 20              # Try "kmesh = -1". This activates the use of a special kpoint (1/4,1/4,1/4), which often give reliable results for melting point.
+gamma_possible = 0      # Possible to run VASP-gamma version? 
+
+radius = 10.0
+
+adj_potim = 1
+tgt_nelm = 5
+
+adj_nbands = 1
+add_nbands = 20
+
+adj_bmix = 1
+
+diff_solid = 0.5
+diff_liquid = 1.0
+diff_select = -1        # SLUSCHI detects solid/liquid based on atom movement. Some anions (e.g., oxygen) are mobile even in solid phase, so it is better not count on them. For example, set diff_select to 1 in HfO2 with Hf-O POTCAR
+
+detectfail = 1          # Detect failed VASP jobs and restart them. It takes hundreds of VASP MD runs to calculate a melting temperature, while some jobs may accidentally fail (e.g., running beyond walltime limit, failed to start due to queue/disk/network issue, etc.). Now SLUSCHI checks VASP MD runs and restarts failed jobs.
+maxwaithour = 6         # If a VASP job does not start in $maxwaithour hours, SLUSCHI will consider it failed. WARNING: JOB MAY WAIT IN QUEUE FOR HOURS. Increase $maxwaithour or set $detectfail to 0

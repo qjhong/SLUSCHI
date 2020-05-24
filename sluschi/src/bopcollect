@@ -1,0 +1,14 @@
+#!/bin/csh
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+@ step = 1
+while ( -d ../$step )
+  cp ../$step/OUTCAR ../$step/POSCAR .
+  if ( $step == 1 ) then
+    @ natom = `grep 'NIONS = ' OUTCAR | awk '{print $12}'`
+    echo $natom > natom
+  endif
+  $sluschipath/avg_pos.x
+  cp strct history/$step
+  @ step = $step + 1
+end

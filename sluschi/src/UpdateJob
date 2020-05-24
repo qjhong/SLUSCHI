@@ -1,0 +1,99 @@
+#!/bin/csh
+@ temp = 0
+@ temp_end = 30000
+
+if ( -e jobs_results.out ) rm jobs_results.out
+while ( $temp < $temp_end )
+  if ( -d $temp ) then
+    if ( -e $temp/$temp/record_results ) then
+      @ n_s = `grep '1$' $temp/$temp/record_results | wc -l`
+      @ n_l = `grep '0$' $temp/$temp/record_results | wc -l`
+      @ n_sum = `awk 'BEGIN{print '$n_s' + '$n_l'}'`
+      echo $temp $n_s $n_l $n_sum >> jobs_results.out
+    endif
+  endif
+  @ temp = $temp + 1
+end
+
+@ temp = 0
+@ temp_end = 30000
+
+if ( -e stop_info.in ) rm stop_info.in
+while ( $temp < $temp_end )
+  if ( -d $temp ) then
+    if ( -e $temp/$temp/record_results ) then
+      cp $temp/$temp/record_results record_results_stop_tmp
+      @ l = `cat record_results_stop_tmp | wc -l`
+      while ( $l > 0 )
+        @ iter = `head -1 record_results_stop_tmp | awk '{print $1}'`
+        set str = `tail -1 $temp/$temp/$iter/stop_history`
+        set str1 = `echo $str | awk '{print $1}'`
+        set str2 = `echo $str | awk '{print $2}'`
+        set str3 = `echo $str | awk '{print $3}'`
+        set str4 = `echo $str | awk '{print $4}'`
+        @ flag = `head -1 record_results_stop_tmp | awk '{print $2}'`
+        printf "%7.4f%7.4f%5d%14.5f%5d\n" $str1 $str2 $str3 $str4 $flag >> stop_info.in
+        sed -i '1d' record_results_stop_tmp
+        @ l = `cat record_results_stop_tmp | wc -l`
+      end
+    endif
+  endif
+  @ temp = $temp + 1
+end
+rm record_results_stop_tmp
+
+if ( -e jobs_results.out ) then
+  cp jobs_to_run.out jobs_to_run.out_tmp
+  @ l = `cat jobs_to_run.out_tmp | wc -l`
+  @ FlagJobsDone = 1
+  while ( $l > 0 )
+    @ temp = `head -1 jobs_to_run.out_tmp | awk '{print $1}' | cut -d'.' -f1`
+    @ n = `head -1 jobs_to_run.out_tmp  | awk '{print $2}'`
+    @ m = `grep "^ *$temp " jobs_results.out | awk '{print $4}'`
+    if ( $m < $n ) @ FlagJobsDone = 0
+    sed -i '1d' jobs_to_run.out_tmp
+    @ l = `cat jobs_to_run.out_tmp | wc -l` 
+  end
+  if ( $FlagJobsDone == 1 ) rm Coex_MD_is_running
+endif
+
+@ temp = 0
+@ temp_end = 30000
+
+if ( -e jobs_status.out ) mv jobs_status.out jobs_status.out0
+
+echo "  Temp  Iter  nMD  Sure?  Solid?" > jobs_status.out
+while ( $temp < $temp_end )
+  if ( -d $temp ) then
+    cd $temp/$temp
+    @ iter = 0
+    @ iter_end = 10000
+    while ( $iter < $iter_end )
+      if ( -e $iter ) then
+        cd $iter 
+        # get $nMD
+        @ nMD = 1
+        while ( -d $nMD)
+          @ nMD = $nMD + 1
+        end
+        @ nMD = $nMD - 1
+        # get $sure
+        @ sure = 0
+        if ( -e anal/history/flag_homo ) @ sure = `cat anal/history/flag_homo`
+#       if ( -e ../record_results ) then
+#         cat ../record_results | grep "^ *$iter " > /dev/null
+#         if ( $? == 0 ) @ sure = 1
+#       endif
+        @ solid = -1
+        if ( -e anal/history/flag_solid ) @ solid = `cat anal/history/flag_solid`
+        printf "%6d%6d%5d%5d%5d\n" $temp $iter $nMD $sure $solid >> ../../../jobs_status.out
+        cd ..
+      endif
+      @ iter = $iter + 1
+    end
+    cd ../..
+  endif
+  @ temp = $temp + 1
+end
+
+
