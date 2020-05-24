@@ -1,0 +1,4 @@
+#!/bin/csh
+grep $1 INCAR > /dev/null
+if ( $? == 0 ) sed -i '/'$1'/d' INCAR
+echo $1 = $2 >> INCAR

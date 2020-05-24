@@ -1,0 +1,32 @@
+#!/bin/csh
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+getinfo.csh adj_bmix job.in > /dev/null
+if ( $? == 0 ) then
+  @ flag_adj = `getinfo.csh adj_bmix job.in`
+else
+  @ flag_adj = 1
+endif
+
+set bmix = `grep BMIX OUTCAR | head -1 | cut -d= -f3`
+
+if ( $flag_adj == 1 ) then
+
+  @ nlines = `grep GAMMA OUTCAR | wc -l`
+  @ nlinesd2 = `awk 'BEGIN{printf("%.0f\n", '$nlines'/2);}'`
+
+  set gamma = `grep GAMMA OUTCAR | awk '{print $4}' | sort -n | tail -$nlinesd2 | head -1`
+
+  #echo $gamma $bmix
+  set bmix = `awk 'BEGIN{printf("%7.2f\n", '$bmix'/'$gamma');}'`
+
+  $sluschipath/UpdateINCAR BMIX $bmix
+  echo Adjust BMIX to $bmix
+
+else
+
+  $sluschipath/UpdateINCAR BMIX $bmix
+  echo Maintain BMIX at $bmix
+
+endif
