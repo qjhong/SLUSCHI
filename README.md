@@ -21,7 +21,7 @@
 
 <!-- wp:list {"ordered":true} -->
 <ol class="uds-list"><!-- wp:list-item -->
-<li>A typical calculation with SLUSCHI takes a few days/weeks, with CPU cost ranging from 5,000 to 100,000 CPU hours. In <a href="https://blogs.brown.edu/qhong/?page_id=7">this page</a>, I list the systems I have studied.</li>
+<li>A typical calculation with SLUSCHI takes a few days/weeks, with CPU cost ranging from 5,000 to 100,000 CPU hours. On <a href="[https://blogs.brown.edu/qhong/?page_id=7](https://faculty.engineering.asu.edu/hong/systems-tested/)">this page</a>, I list the systems I have studied.</li>
 <!-- /wp:list-item -->
 
 <!-- wp:list-item -->
@@ -34,7 +34,7 @@
 <!-- /wp:list -->
 
 <!-- wp:paragraph -->
-<p><p><a href="https://github.com/qjhong/SLUSCHI.git">Sluschi_2.0</a><br>What's new:</p></p>
+<p><p>Sluschi_2.0 <br>What's new:</p></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:list {"ordered":true} -->
@@ -48,7 +48,7 @@
 <!-- /wp:list -->
 
 <!-- wp:paragraph -->
-<p><p><a href="https://github.com/qjhong/SLUSCHI.git">Sluschi_1.3</a><br>What's new:</p></p>
+<p><p>Sluschi_1.3<br>What's new:</p></p>
 <!-- /wp:paragraph -->
 
 <!-- wp:list {"ordered":true} -->
@@ -62,7 +62,7 @@
 <!-- /wp:list -->
 
 <!-- wp:paragraph -->
-<p><a href="https://brownbox.brown.edu/download.php?hash=7609457b">Sluschi_1.2</a><br>What's new:</p>
+<p>Sluschi_1.2<br>What's new:</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:list {"ordered":true} -->
@@ -72,7 +72,7 @@
 <!-- /wp:list -->
 
 <!-- wp:paragraph -->
-<p><a href="https://brownbox.brown.edu/download.php?hash=d03b6755">Sluschi_1.1</a><br>What's new:</p>
+<p>Sluschi_1.1<br>What's new:</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:list {"ordered":true} -->
@@ -106,14 +106,6 @@
 <li>Bug fixes and various improvements.</li>
 <!-- /wp:list-item --></ol>
 <!-- /wp:list -->
-
-<!-- wp:paragraph -->
-<p><a href="http://faculty.engineering.asu.edu/hong/wp-content/uploads/sites/65/2015/02/SluschiUserGuide0_02.pdf">SluschiUserGuide_0.02</a><br><a href="https://brownbox.brown.edu/download.php?hash=d15de0b0">Sluschi_0.02</a></p>
-<!-- /wp:paragraph -->
-
-<!-- wp:paragraph -->
-<p><a href="http://faculty.engineering.asu.edu/hong/wp-content/uploads/sites/65/2015/02/SluschiUserGuide0_01.pdf">SluschiUserGuide_0.01</a><br><a href="https://brownbox.brown.edu/download.php?hash=2beb9e0a">Sluschi_0.01</a></p>
-<!-- /wp:paragraph -->
 
 <!-- wp:paragraph {"className":"lead mt-lg-12 mt-6"} -->
 <p class="lead mt-lg-12 mt-6">SLUSCHI is a fully automated code which calculates melting points based on first-principles molecular dynamics simulations, with interface to the first-principles code VASP. Starting from the crystal structure of a solid (which the user inputs), SLUSCHI will automatically build a supercell of a proper size, prepare solid-liquid coexistence, and then employ the small-cell coexistence method to calculate the melting temperature. SLUSCHI is applicable to a wide variety of materials, thanks to the fact that density functional theory calculations are highly generalizable.</p>
