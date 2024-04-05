@@ -1,0 +1,125 @@
+#!/bin/csh
+cp ../job.in .
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+@ FlagStop = 0
+echo $FlagStop > FlagStop.out
+@ FlagFit = 0
+if ( -e job_results.out ) then
+  rm jobs_to_run.out
+else
+  set temp = `getinfo.csh temp job.in`
+  echo $temp 1 > jobs_to_run.out
+endif
+getinfo.csh confident job.in > confident.in
+getinfo.csh error job.in > ErrorTarget.in
+cd ../Dir_CoexRun
+
+while ( $FlagStop == 0 )
+
+  # submit jobs following jobs_to_run.out
+  if ( -e jobs_to_run.out ) then
+    cp jobs_to_run.out jobs_to_run.out_tmp
+    @ l = `cat jobs_to_run.out_tmp | wc -l`
+    while ( $l > 0 )
+      @ temp = `head -1 jobs_to_run.out_tmp | awk '{print $1}' | cut -d'.' -f1`
+      @ n = `head -1 jobs_to_run.out_tmp | awk '{print $2}'`
+      if ( -d $temp ) then
+        @ n0 = `cat $temp/$temp/iters_to_finish`
+      else
+        @ n0 = 0
+      endif
+      if ( $n > $n0 ) $sluschipath/StartJob $temp $n
+      sed -i '1d' jobs_to_run.out_tmp
+      @ l = `cat jobs_to_run.out_tmp | wc -l`
+    end
+    touch Coex_MD_is_running
+  endif
+
+  # check if jobs are done
+  while ( -e Coex_MD_is_running )
+    sleep 60
+    $sluschipath/UpdateJob
+    find . -name job.in | grep Dir | xargs -n1 -i cp ../job.in {}
+    $sluschipath/BoldJob
+  end
+
+  if ( -e jobs_results.out0 ) then
+    echo === running MPFit === >> ../SLUSCHI.out
+    cp jobs_results.out0 jobs_results.out
+    $sluschipath/MPFit.x
+    @ FlagFit = `cat FlagFitSuccess.out`
+    if ( $FlagFit ) then
+      set str = `cat MPFit.out`
+      echo Melting temperature and std error: $str >> ../SLUSCHI.out
+    else
+      echo not enough data to fit a melting temperature. >> ../SLUSCHI.out
+    endif
+  endif
+
+  # find next jobs to run
+  getinfo.csh error job.in > ErrorTarget.in
+  @ newjob_flag = -1
+  if ( -e jobs_results.out0) then
+    cp jobs_results.out0 jobs_results.out
+    cat jobs_results.out >> ../SLUSCHI.out
+    $sluschipath/NextJob.x >> ../SLUSCHI.out
+    @ temp_run = `cat jobs_to_run.out | head -1 | awk '{print $1}' | cut -d'.' -f1`
+    @ n_run = `cat jobs_to_run.out | head -1 | awk '{print $2}'`
+    @ n_run0 = `cat jobs_status.out | grep "^ *$temp_run " | wc -l`
+    @ FlagStop = `cat FlagStop.out`
+    if ( $FlagStop == 1 ||  $n_run > $n_run0 ) @ newjob_flag = 0
+  endif
+  if ( -e jobs_results.out1 && $newjob_flag == -1 ) then
+    cp jobs_results.out1 jobs_results.out
+    echo "***" WARNING: GUESS RESULTS "("MODE 1")""***" >> ../SLUSCHI.out
+    cat jobs_results.out >> ../SLUSCHI.out
+    $sluschipath/NextJob.x >> ../SLUSCHI.out
+    echo "***" END WARNING: GUESS RESULTS "("MODE 1")""***" >> ../SLUSCHI.out
+    @ temp_run = `cat jobs_to_run.out | head -1 | awk '{print $1}' | cut -d'.' -f1`
+    @ n_run = `cat jobs_to_run.out | head -1 | awk '{print $2}'`
+    @ n_run0 = `cat jobs_status.out | grep "^ *$temp_run " | wc -l`
+    if ( $n_run > $n_run0 ) @ newjob_flag = 1
+    rm jobs_results.out
+    echo 0 > FlagStop.out
+  endif
+  if ( -e jobs_results.out2 && $newjob_flag == -1 ) then
+    cp jobs_results.out2 jobs_results.out
+    echo "***" WARNING: GUESS RESULTS "("MODE 2")""***" >> ../SLUSCHI.out
+    cat jobs_results.out >> ../SLUSCHI.out
+    $sluschipath/NextJob.x >> ../SLUSCHI.out
+    echo "***" END WARNING: GUESS RESULTS "("MODE 2")""***" >> ../SLUSCHI.out
+    @ temp_run = `cat jobs_to_run.out | head -1 | awk '{print $1}' | cut -d'.' -f1`
+    @ n_run = `cat jobs_to_run.out | head -1 | awk '{print $2}'`
+    @ n_run0 = `cat jobs_status.out | grep "^ *$temp_run " | wc -l`
+    if ( $n_run > $n_run0 ) @ newjob_flag = 2
+    grep possibilit ../SLUSCHI.out > /dev/null
+    if ( $? == 0 ) then
+      echo 0 > FlagFitSuccess.out
+    endif
+    rm jobs_results.out
+    echo 0 > FlagStop.out
+  endif
+  @ FlagStop = `cat FlagStop.out`
+  if ( $FlagStop == 1 ) then
+    cat jobs_status.out | awk '{print $4}' | grep 0 > /dev/null
+    if ( $? == 1 ) then
+      echo MP accuracy achieved. Stopping code... >> ../SLUSCHI.out
+    else    # There are jobs still running...
+      @ FlagStop = 0
+    endif
+  else
+    echo === Find next job to run === >> ../SLUSCHI.out
+    @ l = `cat jobs_to_run.out | wc -l`
+    cp jobs_to_run.out jobs_to_run.out_tmp
+    while ( $l > 0 )
+      set str = `head -1 jobs_to_run.out_tmp`
+      set temp = `echo $str | awk '{print $1}'`
+      set n = `echo $str | awk '{print $2}'`
+      echo next job: $n MD duplicate"("s")" at $temp K >> ../SLUSCHI.out
+      sed -i '1d' jobs_to_run.out_tmp
+      @ l = `cat jobs_to_run.out_tmp | wc -l`
+    end
+  endif
+
+end

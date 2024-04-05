@@ -1,0 +1,17 @@
+#!/bin/bash
+ 
+#SBATCH -J Fe_250_master       # name                                              
+#SBATCH -p qhong7cpu1       # partition                                         
+#SBATCH -q qhong7qos       # QOS                                                
+#SBATCH -N 1  # number of nodes
+#SBATCH -n 1  # number of "tasks" (default: allocates 1 core per task)
+#SBATCH -t 1-0:00:00   # time in d-hh:mm:ss
+#SBATCH -o slurm.%j.out # file to save job's STDOUT (%j = JobId)
+#SBATCH -e slurm.%j.err # file to save job's STDERR (%j = JobId)
+#SBATCH --mail-type=ALL # Send an e-mail when a job starts, stops, or fails
+#SBATCH --mail-user=%u@asu.edu # Mail-to address
+##SBATCH --export=NONE   # Purge the job-submitting shell environment
+##SBATCH --nodelist=cg45-6
+
+./timecollect_volsearch.csh 
+./calc.csh > calc_results

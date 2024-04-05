@@ -1,0 +1,23 @@
+#!/bin/csh
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+tail -1 ../../OSZICAR | awk '{print $7}' > energy.out 
+$sluschipath/avg_anal
+rm diff_his
+touch diff_his
+@ ifile = 1
+@ inextfile = $ifile + 1
+while ( -e $inextfile  )
+  cp $ifile struct0
+  cp $inextfile struct1
+  sleep 10
+  $sluschipath/diff_ml.x
+  cat diff >> diff_his
+  @ ifile = $inextfile
+  @ inextfile = $ifile + 1
+end
+@ flag_homo = `cat flag_homo`
+if ( $flag_homo == 1 ) then
+#  @ ifile = $ifile - 1
+  echo $ifile > iter_homo
+endif

@@ -1,0 +1,54 @@
+#!/bin/csh
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+getinfo.csh adj_nbands job.in > /dev/null
+if ( $? == 0 ) then
+  @ flag_adj = `getinfo.csh adj_nbands job.in`
+else
+  @ flag_adj = 1
+endif
+
+@ nbands = `grep -B6 'soft charge-density' OUTCAR | grep -B4 '\-\-\-' | tail -4 | head -1 | awk '{print $1}'`
+
+if ( $flag_adj == 1 ) then
+
+  getinfo.csh add_nbands job.in > /dev/null
+  if ( $? == 0 ) then
+    @ add_nbands = `getinfo.csh add_nbands job.in`
+  else
+    @ add_nbands = 10
+  endif
+
+
+  @ stop = 0
+  while ( $stop == 0 )
+  
+    grep '^ *'$nbands'' OUTCAR | awk '{print $3}' > occupancy_states
+  
+    #@ l0 = `cat occupancy_states | wc -l`
+    #@ l = 1
+    #while ( $l <= $l0 )
+    #  set a = `head -$l occupancy_states | tail -1`
+    #  if ( ! ($a == 0.00000) ) then
+    #    @ stop = 1
+    #  endif
+    #  @ l = $l + 1
+    #end
+    set a = `cat occupancy_states | sort | tail -1`
+    if ( ! ($a == 0.00000) ) then
+      @ stop = 1
+    endif
+  
+    if ( $stop == 0 ) @ nbands = $nbands - 1
+  end
+  @ nbands = $nbands + $add_nbands
+  $sluschipath/UpdateINCAR NBANDS $nbands
+  echo Adjust NBANDS to $nbands
+
+else
+
+  $sluschipath/UpdateINCAR NBANDS $nbands
+  echo Maintain NBANDS at $nbands
+
+endif

@@ -1,0 +1,73 @@
+#!/bin/csh
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+
+@ boldsample = 0
+getinfo.csh boldsample job.in > /dev/null
+if ( $? == 0 ) @ boldsample = `getinfo.csh boldsample job.in`
+@ nsample = 10
+getinfo.csh nsample job.in > /dev/null
+if ( $? == 0 ) @ nsample = `getinfo.csh nsample job.in`
+
+# nsample_running: 	sample with no clue at all
+# nsample_completed:		sample done / showing tendency
+@ nsample_all = `sed '1d' jobs_status.out | wc -l`
+@ nsample_running = `cat jobs_status.out | awk '{print $5}' | grep '\-1' | wc -l` 
+@ nsample_completed = $nsample_all - $nsample_running
+@ nsample2 = $nsample_completed + 2
+if ( $nsample2 < $nsample ) @ nsample = $nsample2
+
+if ( -e jobs_results.out ) mv jobs_results.out jobs_results.out0
+if ( -e jobs_results.out1 ) mv jobs_results.out1 jobs_results.out1_bak
+if ( -e jobs_results.out2 ) mv jobs_results.out2 jobs_results.out2_bak
+# generate jobs_results.out1 & jobs_results.out2
+@ temp = 0
+@ temp_end = 100000
+if ( -e jobs_status.out ) then
+  @ temp_end = `tail -1 jobs_status.out | awk '{print $1}'`
+  @ temp = `head -2 jobs_status.out | tail -1 | awk '{print $1}'`
+endif
+@ max_ntotal = 0
+while ( $temp <= $temp_end )
+  grep "^ *$temp " jobs_status.out > /dev/null
+  if ( $? == 0 ) then
+    #echo $temp
+    @ nsolid1 = `grep "^ *$temp " jobs_status.out | awk '{print $4,$5}' | grep '1 1' | wc -l`
+    @ nsolid2 = `grep "^ *$temp " jobs_status.out | awk '{print $4,$5}' | grep '0 11' | wc -l`
+    @ nliquid1 = `grep "^ *$temp " jobs_status.out | awk '{print $4,$5}' | grep '1 0' | wc -l`
+    @ nliquid2 = `grep "^ *$temp " jobs_status.out | awk '{print $4,$5}' | grep '0 10' | wc -l`
+    @ nsolid = $nsolid1 + $nsolid2
+    @ nliquid = $nliquid1 + $nliquid2
+    @ ntotal = $nsolid + $nliquid
+    if ( $ntotal > 0 ) then
+      echo $temp $nsolid $nliquid $ntotal >> jobs_results.out1
+    endif
+    @ ntotal = `grep "^ *$temp " jobs_status.out | wc -l`
+    if ( $ntotal > $max_ntotal ) @ max_ntotal = $ntotal
+#    @ nsolid = $ntotal - $nliquid
+#    echo $temp $nsolid $nliquid $ntotal >> jobs_results.out2
+  endif
+  @ temp = $temp + 1
+end
+$sluschipath/status2out.x
+if ( -e FlagFitSuccess.out ) rm jobs_results.out2*
+
+@ nlines = `cat jobs_status.out | wc -l`
+@ nlines_incomplete = `cat jobs_status.out | grep "\-1" | wc -l`
+# Start BOLD only if
+# 1. boldsample is on
+# 2. nsample is below limit
+# 3. nlines is greater than 4
+# 4. if nlines is <= 4, incompleted jobs is smaller than 2
+if ( $nsample_running < $nsample && $boldsample == 1 && ( $nlines_incomplete < 2 || $nlines > 4 ) ) then
+  if ( -e jobs_results.out2 ) then
+    rm Coex_MD_is_running
+    echo Employing BOLD Strategy... >> ../SLUSCHI.out
+  else if ( -e jobs_results.out1 ) then
+    @ ndiff = 0
+    if ( -e jobs_results.out1_bak ) @ ndiff = `diff jobs_results.out1_bak jobs_results.out1 | wc -l`
+    if ( $ndiff > 0 ) then
+      rm Coex_MD_is_running
+      echo Employing BOLD Strategy... >> ../SLUSCHI.out
+    endif
+  endif
+endif

@@ -1,0 +1,23 @@
+#!/bin/bash
+ 
+#SBATCH -N 1  # number of nodes
+#SBATCH -n 32  # number of "tasks" (default: allocates 1 core per task)
+#SBATCH -t 0-4:00:00   # time in d-hh:mm:ss
+#SBATCH -p qhong7cpu1       # partition 
+#SBATCH -q qhong7qos       # QOS
+#SBATCH -o slurm.%j.out # file to save job's STDOUT (%j = JobId)
+#SBATCH -e slurm.%j.err # file to save job's STDERR (%j = JobId)
+#SBATCH --mail-type=ALL # Send an e-mail when a job starts, stops, or fails
+#SBATCH --mail-user=%u@asu.edu # Mail-to address
+#SBATCH --export=NONE   # Purge the job-submitting shell environment
+##SBATCH --gres=gpu:1
+##SBATCH -C V100_32
+
+module purge
+module load vasp/5.4.4-elpa
+
+export I_MPI_HYDRA_BOOTSTRAP_EXEC_EXTRA_ARGS="--cpu-bind=none"
+export I_MPI_HYDRA_BOOTSTRAP=slurm
+export I_MPI_HYDRA_BOOTSTRAP_EXEC=srun
+
+mpiexec.hydra vasp_std

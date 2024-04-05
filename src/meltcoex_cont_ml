@@ -1,0 +1,145 @@
+#!/bin/csh
+
+#mkdir anal
+#mkdir anal/history
+#cp ../CONTCAR ../OUTCAR .
+#cp ../INCAR ../KPOINTS ../POTCAR  ../job.in .
+#cp ../jobsub .
+#cp POTCAR POTCAR2
+#cat POTCAR2 >> POTCAR
+#rm POTCAR2
+#if ( -e ../KPOINTS_gamma ) cp ../KPOINTS_gamma KPOINTS
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+set vaspcmd = `getinfo.csh vaspcmd job.in`
+
+# determine vasp5 or vasp4. vasp5 has one more line, which specifies elements
+set element = `grep POTCAR OUTCAR | head -1 | awk '{print $3}' | cut -d'_' -f1`
+@ vasp5 = 0
+head -6 CONTCAR | tail -1 | grep $element > /dev/null
+if ( $? == 0 ) @ vasp5 = 1
+if ( $vasp5 == 1 ) sed -i '6d' CONTCAR
+
+@ nions = `grep 'NIONS =' OUTCAR | awk '{print $12}'`
+
+# now write POSCAR
+#head -2 CONTCAR > POSCAR_coex_head
+#head -3 CONTCAR | tail -1 | awk '{print $1*2,$2*2,$3*2}' >> POSCAR_coex_head
+#head -5 CONTCAR | tail -2 >> POSCAR_coex_head
+#set elements = `head -6 CONTCAR | tail -1`
+#echo $elements " " $elements >> POSCAR_coex_head
+#cp POSCAR_coex_head POSCAR
+#echo Selective dynamics >> POSCAR
+#echo Direct >> POSCAR
+#@ tmp = $nions + 7
+#head -$tmp CONTCAR | tail -$nions | awk '{print $1/2,$2,$3 " T T T"}' >> POSCAR
+#head -$tmp CONTCAR | tail -$nions | awk '{print $1/2+0.5,$2,$3 " F F F"}' >> POSCAR
+#
+set temp = `getinfo.csh temp job.in`
+set sigma = `awk -v a="0.000086" -v b=$temp 'BEGIN{print (b*a)}'`
+$sluschipath/UpdateINCAR SIGMA $sigma
+set temp = `getinfo.csh TEBEG INCAR`
+$sluschipath/UpdateINCAR TEBEG $temp
+#$sluschipath/UpdateINCAR TEEND $temp
+#$sluschipath/UpdateINCAR NSW 80
+#$sluschipath/UpdateINCAR SMASS 0
+#set nbands = `grep NBANDS INCAR | cut -d'=' -f2`
+#set nbands2 = `awk 'BEGIN{print '$nbands'*2}'`
+#$sluschipath/UpdateINCAR NBANDS $nbands2
+#$sluschipath/UpdateINCAR PREC low
+#
+#cd ..
+#$sluschipath/UpdateINCAR NBANDS $nbands2
+#cd -
+
+#rm OUTCAR
+#$vaspcmd jobsub >> jobsub.log
+@ flag_gamma = 0
+
+@ stopflag = 0
+@ meltflag = 0
+@ iter_count = 0
+@ nstep = 1
+while ( -d $nstep )
+  @ nstep = $nstep + 1
+end
+echo Continue running with JOB $nstep
+while ($stopflag == 0)
+  sleep 60 ############################################################
+  if ( -e OUTCAR ) then
+  grep -s "Total CPU" OUTCAR > /dev/null
+  if (! $?) then
+
+    echo --- JOB $nstep DONE ---
+
+    head -5 POSCAR | tail -3 > lattice.out
+    set v1 = `head -1 lattice.out`
+    set v2 = `head -2 lattice.out | tail -1`
+    set v3 = `head -3 lattice.out | tail -1`
+    set navg_pressure = `getinfo.csh navg job.in`
+
+    echo --- ADJUST INCAR TAGS ---
+    $sluschipath/AdjustPOTIM
+    $sluschipath/AdjustNBANDS
+    $sluschipath/AdjustBMIX
+
+    if ( $meltflag == 1 ) then # already melt, record OUTCAR
+      cat OUTCAR >> OUTCAR_history
+      @ iter_count = $iter_count + 1
+      @ nlines = `grep POSI OUTCAR_history | wc -l`
+      if ( $iter_count >= 50 ) @ stopflag = 1
+      if ( $nlines >= 4000 ) @ stopflag = 1
+    endif
+
+    mkdir $nstep
+    cp INCAR KPOINTS POSCAR OSZICAR $nstep
+    @ NKPTS = `grep NKPTS OUTCAR | awk '{print $4}'`
+    @ gamma = `getinfo.csh gamma_possible job.in`
+    mv OUTCAR $nstep
+    touch OUTCAR
+
+    if ( -d 2 && ( ! $meltflag ) ) then # if not melt yet
+      cd anal
+      $sluschipath/bopcollect
+      cd history # anal/history
+      $sluschipath/anal_melt_ml
+      set avg_left = `head -1 avghalf | awk '{print $1}'`
+      awk 'BEGIN{if ('$avg_left' > 1.0) exit 1}'
+      if ( $? ) then
+        @ meltflag = 1
+        echo \*\*\* The solid melts \*\*\*
+      endif
+      set temp = `awk 'BEGIN{print '$temp' + 500}'`
+      cd ../..
+    endif
+
+
+    if ( $stopflag == 0 ) then
+      cp CONTCAR POSCAR
+      set sigma = `awk -v a="0.000086" -v b=$temp 'BEGIN{print (b*a)}'`
+#      $sluschipath/UpdateINCAR SIGMA $sigma
+      $sluschipath/UpdateINCAR TEBEG $temp
+      $sluschipath/UpdateINCAR TEEND $temp
+      echo The temperature is $temp K.
+      if ( $NKPTS == 1 && -e ../jobsub_gamma ) then
+        if ( $flag_gamma == 0 ) then
+          cp IBZKPT KPOINTS
+          rm WAVECAR
+          @ flag_gamma = 1
+        endif
+        cp ../jobsub_gamma jobsub
+      else
+        cp ../../../../jobsub .
+      endif
+      $vaspcmd jobsub >> jobsub.log
+      set nstep = `expr $nstep + 1`
+      echo -n "Job $nstep submitted. "
+      echo Waiting for job $nstep to finish...
+    endif
+  endif
+  endif
+
+end
+echo killing script
+touch meltcoex_is_completed
+cp OUTCAR_history OUTCAR
