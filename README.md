@@ -39,7 +39,7 @@
 
 <!-- wp:list {"ordered":true} -->
 <ol class="uds-list"><!-- wp:list-item -->
-<li>mds: new capability to compute entropy of both solids and liquids from one single MD trajectory. User manual coming soon. </li>
+<li>mds: a new capability to compute the entropy of both solids and liquids from one single MD trajectory. A user manual is coming soon this fall. Follow this <a href="https://drive.google.com/drive/folders/1DuiBRLLoJCH1EfLM0qCZyJsuIUR62S6l?usp=sharing">link</a> on Google Drive for examples.</li>
 <!-- /wp:list-item -->
 
 <!-- wp:list-item -->
@@ -90,7 +90,7 @@
 <!-- /wp:list -->
 
 <!-- wp:paragraph -->
-<p><a href="https://brownbox.brown.edu/download.php?hash=b9fff340">Sluschi_1</a><br>User guide at <a href="https://www.sciencedirect.com/science/article/pii/S0364591615300468">the <em>CALPHAD Journal</em></a>.<br>What's new:</p>
+<p>Sluschi_1<br>User guide at <a href="https://www.sciencedirect.com/science/article/pii/S0364591615300468">the <em>CALPHAD Journal</em></a>.<br>What's new:</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:list {"ordered":true} -->
