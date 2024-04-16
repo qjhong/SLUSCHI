@@ -107,6 +107,15 @@
 <!-- /wp:list-item --></ol>
 <!-- /wp:list -->
 
+<!-- wp:heading -->
+<h2 class="wp-block-heading">Download Counts by 2021 </h2>
+<!-- /wp:heading -->
+<p>Traffic analyzed at BrownBox by Brown University, before I left Brown and moved SLUSCHI to GitHub.</p>
+<!-- wp:image {"id":83,"sizeSlug":"small","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="https://faculty.engineering.asu.edu/hong/wp-content/uploads/sites/65/2024/04/DLcount.png" alt="" class="wp-image-83"/></figure>
+<!-- /wp:image -->
+
+<h2 class="wp-block-heading">Waht is SLUSCHI</h2>
 <!-- wp:paragraph {"className":"lead mt-lg-12 mt-6"} -->
 <p class="lead mt-lg-12 mt-6">SLUSCHI is a fully automated code which calculates melting points based on first-principles molecular dynamics simulations, with interface to the first-principles code VASP. Starting from the crystal structure of a solid (which the user inputs), SLUSCHI will automatically build a supercell of a proper size, prepare solid-liquid coexistence, and then employ the small-cell coexistence method to calculate the melting temperature. SLUSCHI is applicable to a wide variety of materials, thanks to the fact that density functional theory calculations are highly generalizable.</p>
 <!-- /wp:paragraph -->
