@@ -32,14 +32,14 @@ echo $n_iter > iters_to_finish
 echo === Run NPT MD at $temp_now K on $n_iter snapshot"("s")" === >> ../../../SLUSCHI.out
 
 # capture structures
-@ snap_completed = 0
+@ snap_done = 0
 @ snap_end = `cat iters_to_finish`
 @ iter_now = 0
 @ iter_long = 4000  # total 5000
 @ iter_step = `awk 'BEGIN{print '$iter_long'/'$snap_end'}'`
 
-while ($snap_completed < $snap_end)
-  @ snap_completed = $snap_completed + 1
+while ($snap_done < $snap_end)
+  @ snap_done = $snap_done + 1
   @ iter_now = $iter_now + $iter_step
   if ( -d $iter_now ) then
   else

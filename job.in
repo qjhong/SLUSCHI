@@ -20,7 +20,7 @@ error = 50.0
 vaspcmd = sbatch
 LongWT = 0		# run a job with very long walltime and skip waiting in the queue. switch it on if having access. prepare jobsub_LongWT
 
-kmesh = -1              # Try "kmesh = -1". This activates the use of a special kpoint (1/4,1/4,1/4), which often give reliable results for melting point.
+kmesh = 20              # Try "kmesh = -1". This activates the use of a special kpoint (1/4,1/4,1/4), which often give reliable results for melting point.
 gamma_possible = 0      # Possible to run VASP-gamma version? 
 
 radius = 10.0
@@ -37,5 +37,5 @@ diff_solid = 0.5
 diff_liquid = 1.0
 diff_select = -1        # SLUSCHI detects solid/liquid based on atom movement. Some anions (e.g., oxygen) are mobile even in solid phase, so it is better not count on them. For example, set diff_select to 1 in HfO2 with Hf-O POTCAR
 
-detectfail = 0          # Detect failed VASP jobs and restart them. It takes hundreds of VASP MD runs to calculate a melting temperature, while some jobs may accidentally fail (e.g., running beyond walltime limit, failed to start due to queue/disk/network issue, etc.). Now SLUSCHI checks VASP MD runs and restarts failed jobs.
+detectfail = 1          # Detect failed VASP jobs and restart them. It takes hundreds of VASP MD runs to calculate a melting temperature, while some jobs may accidentally fail (e.g., running beyond walltime limit, failed to start due to queue/disk/network issue, etc.). Now SLUSCHI checks VASP MD runs and restarts failed jobs.
 maxwaithour = 6         # If a VASP job does not start in $maxwaithour hours, SLUSCHI will consider it failed. WARNING: JOB MAY WAIT IN QUEUE FOR HOURS. Increase $maxwaithour or set $detectfail to 0

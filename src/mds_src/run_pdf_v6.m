@@ -1,5 +1,7 @@
 function [med] = run_pdf(system,avg_iter_vec,n_elms)
 
+format shortG
+
 for ii = 1:n_elms
 for jj = 1:n_elms
     for j = 1:size(avg_iter_vec,2);

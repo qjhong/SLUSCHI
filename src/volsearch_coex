@@ -41,7 +41,7 @@ while ($stopflag == 0)
 
   if ( -e OUTCAR ) then
   grep -s "Total CPU" OUTCAR > /dev/null
-  if (! $?) then # Job is done
+  if (! $?) then # Job is completed
 
     echo ====== JOB $nstep DONE ======
 

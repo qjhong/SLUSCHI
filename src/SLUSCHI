@@ -77,9 +77,9 @@ while ( $stop == 0 )
     head -5 CONTCAR | tail -4 >> ../SLUSCHI.out
   else
     sleep 60
-    find .. -name job.in | grep Dir | xargs -n1 -i cp ../job.in {} > /dev/null
+    find .. -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
   endif
-end # optunitcell is done
+end # optunitcell is completed
 cd ..
 
 echo "====================================================================================================" >> SLUSCHI.out
@@ -110,9 +110,9 @@ while ( $stop == 0 )
     head -5 CONTCAR | tail -4 >> ../SLUSCHI.out
   else
     sleep 60
-    find .. -name job.in | grep Dir | xargs -n1 -i cp ../job.in {} > /dev/null
+    find .. -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
   endif
-end # volsearch is done
+end # volsearch is completed
 cd ..
 
 @ only = 0
@@ -155,7 +155,7 @@ while ( $stop == 0 )
   else
     sleep 60
   endif
-end # meltcoex is done
+end # meltcoex is completed
 cd ..
 
 echo "====================================================================================================" >> SLUSCHI.out

@@ -226,4 +226,4 @@ echo total pressure is $p kbar, which meets the target $pressure_target within 2
 echo killing script...
 cp CONTCAR $nstep/OUTCAR ..
 cp INCAR ..
-touch volsearch_is_completed
+touch volsearch_is_done

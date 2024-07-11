@@ -9,11 +9,11 @@ getinfo.csh nsample job.in > /dev/null
 if ( $? == 0 ) @ nsample = `getinfo.csh nsample job.in`
 
 # nsample_running: 	sample with no clue at all
-# nsample_completed:		sample done / showing tendency
+# nsample_done:		sample done / showing tendency
 @ nsample_all = `sed '1d' jobs_status.out | wc -l`
 @ nsample_running = `cat jobs_status.out | awk '{print $5}' | grep '\-1' | wc -l` 
-@ nsample_completed = $nsample_all - $nsample_running
-@ nsample2 = $nsample_completed + 2
+@ nsample_done = $nsample_all - $nsample_running
+@ nsample2 = $nsample_done + 2
 if ( $nsample2 < $nsample ) @ nsample = $nsample2
 
 if ( -e jobs_results.out ) mv jobs_results.out jobs_results.out0

@@ -1,10 +1,18 @@
 #!/bin/csh
 set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
 
+@ iter = 1
+while ( -e ../../$iter )
+  @ iter = $iter + 1
+end
+@ iter = $iter - 1
+set potim = `grep 'POTIM  =' ../../$iter/OUTCAR | awk '{print $3}'`
+echo $potim > potim
+
 tail -1 ../../OSZICAR | awk '{print $7}' > energy.out 
 $sluschipath/avg_anal
-rm diff_his
-touch diff_his
+rm diff_his avghalf_his
+touch diff_his avghalf_his
 @ ifile = 1
 @ inextfile = $ifile + 1
 while ( -e $inextfile  )
@@ -15,6 +23,7 @@ while ( -e $inextfile  )
   end
   $sluschipath/diff.x
   cat diff >> diff_his
+  cat avghalf >> avghalf_his
   @ ifile = $inextfile
   @ inextfile = $ifile + 1
 end

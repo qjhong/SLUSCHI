@@ -1,4 +1,4 @@
-function [SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,n_atoms_total,step_unit,n_elms] = onephase_v6(filename,Nnu)
+function [SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,n_atoms_total,step_unit,n_elms,niter] = onephase_v6(filename,Nnu)
 
 h=6.626e-34;
 eV = 1.602e-19;

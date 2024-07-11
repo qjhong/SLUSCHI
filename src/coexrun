@@ -40,7 +40,7 @@ while ( $FlagStop == 0 )
   while ( -e Coex_MD_is_running )
     sleep 60
     $sluschipath/UpdateJob
-    find . -name job.in | grep Dir | xargs -n1 -i cp ../job.in {}
+    find . -name job.in | xargs -n1 -i cp ../job.in {}
     $sluschipath/BoldJob
   end
 

@@ -193,7 +193,7 @@ while ($stopflag == 0)
 
 end
 echo killing script
-touch meltcoex_is_completed
+touch meltcoex_is_done
 cp OUTCAR_history OUTCAR
 cd ..
 $sluschipath/UpdateINCAR NBANDS $nbands2
