@@ -34,6 +34,20 @@
 <!-- /wp:list -->
 
 <!-- wp:paragraph -->
+<p><p>Sluschi_2.2 <br>What's new:</p></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list {"ordered":true} -->
+<ol class="uds-list"><!-- wp:list-item -->
+<li>mds_lmp: mds with interface to LAMMPS.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Bug fixes and various improvements.</li>
+<!-- /wp:list-item --></ol>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
 <p><p>Sluschi_2.0 <br>What's new:</p></p>
 <!-- /wp:paragraph -->
 
