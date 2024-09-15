@@ -4,8 +4,7 @@ set path_cur = `pwd`
 echo $path_cur
 
 set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`              
-set path_src = $sluschipath/mds_src/
-echo $path_src
+set path_src = $sluschipath/mds_src/                                            
 
 find . -name Dir_VolSearch > foldernames                                              
                                                                                 
@@ -22,13 +21,13 @@ while ( $l > 0 )
     @ n = $n + 1
   end
   @ n = $n - 1
-# run 1
   # run script
   if ( -e n_iter_exclude ) then
     @ n_exclude = `cat n_iter_exclude`
   else
     @ n_exclude = 50
   endif
+
   @ n = $n - $n_exclude
   echo $n folders will be used to run analysis
   $path_src/script_v4.csh $n
@@ -48,28 +47,12 @@ while ( $l > 0 )
   endif
   sed -i "s/replace_here/$solid\_$temp/" jobsub_master
   sed -i "s/replace_here/$solid\_$temp/" main.m
-  sed -i "s|replace_folder_here|$path_src|" main.m
   # run jobsub
   rm sl*out
-  # sbatch jobsub_master
+  sbatch jobsub_master
 
-module load matlab
-
-set filename = $solid\_$temp
-echo $filename
-
-cp latt latt_$filename
-cp step step_$filename
-cp param param_$filename
-cp pos pos_$filename
-
-matlab -r "run('main.m'); exit;" > entropy.out
-
-  # go back
-  cd -
-# run 2
-  # run script
-  @ n = $n - $n_exclude
+  cd ..
+  @ n = $n - 50
   echo $n folders will be used to run analysis
   $path_src/script_v4.csh $n
   # mkdir and cp
@@ -88,28 +71,12 @@ matlab -r "run('main.m'); exit;" > entropy.out
   endif
   sed -i "s/replace_here/$solid\_$temp/" jobsub_master
   sed -i "s/replace_here/$solid\_$temp/" main.m
-  sed -i "s|replace_folder_here|$path_src|" main.m
   # run jobsub
   rm sl*out
-  # sbatch jobsub_master
+  sbatch jobsub_master
 
-module load matlab
-
-set filename = $solid\_$temp
-echo $filename
-
-cp latt latt_$filename
-cp step step_$filename
-cp param param_$filename
-cp pos pos_$filename
-
-matlab -r "run('main.m'); exit;" > entropy.out
-
-  # go back
-  cd -
-# run 3
-  # run script
-  @ n = $n - $n_exclude
+  cd ..
+  @ n = $n - 50
   echo $n folders will be used to run analysis
   $path_src/script_v4.csh $n
   # mkdir and cp
@@ -128,22 +95,9 @@ matlab -r "run('main.m'); exit;" > entropy.out
   endif
   sed -i "s/replace_here/$solid\_$temp/" jobsub_master
   sed -i "s/replace_here/$solid\_$temp/" main.m
-  sed -i "s|replace_folder_here|$path_src|" main.m
   # run jobsub
   rm sl*out
-  # sbatch jobsub_master
-
-module load matlab
-
-set filename = $solid\_$temp
-echo $filename
-
-cp latt latt_$filename
-cp step step_$filename
-cp param param_$filename
-cp pos pos_$filename
-
-matlab -r "run('main.m'); exit;" > entropy.out
+  sbatch jobsub_master
 
   # go back
   cd $path_cur

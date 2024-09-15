@@ -1,0 +1,103 @@
+#!/bin/csh
+
+# set path
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+set path_src = $sluschipath/mds_lmp_src/
+
+set nfiles = `ll ../*dump* | wc -l`
+if ( $nfiles > 1 ) then
+  echo ERROR: There are more than one dump file. Please keep only one.
+endif
+cp ../*dump* lmp.dump
+cp $path_src/lmp_prep.csh $path_src/lmp_pos.py .
+
+# exclude first $n_exclude MD steps
+if ( -e n_iter_exclude ) then
+  @ n_exclude = `cat n_iter_exclude`
+else
+  @ n_exclude = 1000
+endif
+
+# entropy run 0
+./lmp_prep.csh $n_exclude
+
+if ( ! -d entropy ) then
+  mkdir entropy
+endif
+cp $sluschipath/mds_lmp_src/entropy/* entropy
+cp pos param latt step ../phase_temp entropy
+cd entropy
+set phase_temp = `cat phase_temp`
+sed -i "s/replace_here/$phase_temp/" jobsub_master
+sed -i "s/replace_here/$phase_temp/" main.m
+sed -i "s|replace_folder_here|$path_src|" main.m
+# run jobsub
+rm sl*out
+# sbatch jobsub_master
+module load matlab # change to your matlab module
+set filename = $phase_temp
+echo $filename
+mv latt latt_$filename
+mv step step_$filename
+mv param param_$filename
+mv pos pos_$filename
+matlab -r "run('main.m'); exit;" > entropy.out
+cd ..
+
+# entropy run 1
+@ n_exclude = $n_exclude + $n_exclude
+./lmp_prep.csh $n_exclude
+
+if ( ! -d entropy1 ) then
+  mkdir entropy1
+endif
+cp $sluschipath/mds_lmp_src/entropy/* entropy1
+cp pos param latt step ../phase_temp entropy1
+cd entropy1
+set phase_temp = `cat phase_temp`
+sed -i "s/replace_here/$phase_temp/" jobsub_master
+sed -i "s/replace_here/$phase_temp/" main.m
+sed -i "s|replace_folder_here|$path_src|" main.m
+# run jobsub
+rm sl*out
+# sbatch jobsub_master
+module load matlab
+set filename = $phase_temp
+echo $filename
+mv latt latt_$filename
+mv step step_$filename
+mv param param_$filename
+mv pos pos_$filename
+matlab -r "run('main.m'); exit;" > entropy.out
+cd ../
+
+# entropy run 2
+@ n_exclude = $n_exclude + $n_exclude
+./lmp_prep.csh $n_exclude
+
+if ( ! -d entropy2 ) then
+  mkdir entropy2
+endif
+cp $sluschipath/mds_lmp_src/entropy/* entropy2
+cp pos param latt step ../phase_temp entropy2
+cd entropy2
+set phase_temp = `cat phase_temp`
+sed -i "s/replace_here/$phase_temp/" jobsub_master
+sed -i "s/replace_here/$phase_temp/" main.m
+sed -i "s|replace_folder_here|$path_src|" main.m
+# run jobsub
+rm sl*out
+# sbatch jobsub_master
+module load matlab
+set filename = $phase_temp
+echo $filename
+mv latt latt_$filename
+mv step step_$filename
+mv param param_$filename
+mv pos pos_$filename
+matlab -r "run('main.m'); exit;" > entropy.out
+cd ../
+
+rm POSCAR_*
+
+$path_src/collect.csh 

@@ -70,14 +70,14 @@ endif
 # in Dir_OptUnitCell
 @ stop = 0
 while ( $stop == 0 )
-  if ( -e optunitcell_is_completed ) then
+  if ( -e optunitcell_is_completed || -e optunitcell_is_done ) then
     @ stop = 1
     echo \*\*\* I find that unit-cell optimization completed. \*\*\* >> ../SLUSCHI.out
     echo === Optimized Lattice Vectors === >> ../SLUSCHI.out
     head -5 CONTCAR | tail -4 >> ../SLUSCHI.out
   else
     sleep 60
-    find .. -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
+    find . -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
   endif
 end # optunitcell is completed
 cd ..
@@ -101,7 +101,7 @@ endif
 # in Dir_VolSearch
 @ stop = 0
 while ( $stop == 0 )
-  if ( -e volsearch_is_completed ) then
+  if ( -e volsearch_is_completed || -e volsearch_is_done ) then
     @ stop = 1
     echo \*\*\* I find that the volume search completed. \*\*\* >> ../SLUSCHI.out
     echo === Initial Lattice Vectors === >> ../SLUSCHI.out
@@ -110,7 +110,7 @@ while ( $stop == 0 )
     head -5 CONTCAR | tail -4 >> ../SLUSCHI.out
   else
     sleep 60
-    find .. -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
+    find . -name job.in | xargs -n1 -i cp ../job.in {} > /dev/null
   endif
 end # volsearch is completed
 cd ..
@@ -149,7 +149,7 @@ endif
 # in Dir_Melt
 @ stop = 0
 while ( $stop == 0 )
-  if ( -e meltcoex_is_completed ) then
+  if ( -e meltcoex_is_completed || -e meltcoex_is_done ) then
     echo \*\*\* I find that the coexistence structure preparation completed. \*\*\* >> ../SLUSCHI.out
     @ stop = 1
   else
@@ -164,4 +164,4 @@ if ( ! -e Dir_CoexRun ) then
 endif
 cd Dir_CoexRun
 echo \*\*\* Now running coexistence simulations... \*\*\* >> ../SLUSCHI.out
-$sluschipath/coexrun >> ../SLUSCHI.out &
+$sluschipath/coexrun >> ../SLUSCHI.out 

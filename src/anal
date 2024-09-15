@@ -1,6 +1,29 @@
 #!/bin/csh
 set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
 
+getinfo.csh diff_solid ../../job.in > /dev/null
+if ( $? == 0 ) then
+  getinfo.csh diff_solid ../../job.in > diff.in
+else
+  echo 0.5 > diff.in
+endif
+getinfo.csh diff_liquid ../../job.in > /dev/null
+if ( $? == 0 ) then
+  getinfo.csh diff_liquid ../../job.in >> diff.in
+else
+  echo 1.0 >> diff.in
+endif
+getinfo.csh diff_select ../../job.in > /dev/null
+if ( $? == 0 ) then
+  getinfo.csh diff_select ../../job.in >> diff.in
+else
+  echo -1 >> diff.in
+endif
+grep '^Direct$' ../../CONTCAR -B1 | grep -v Direct > natoms
+cp ../../../../../stop_info.in .
+sleep 5
+
+
 @ iter = 1
 while ( -e ../../$iter )
   @ iter = $iter + 1

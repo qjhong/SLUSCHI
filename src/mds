@@ -101,7 +101,6 @@ endif
 # in Dir_VolSearch
 @ stop = 0
 while ( $stop == 0 )
-  sleep 600
   if ( -d 10 ) then
     sed -i '/adj_potim/d' ../job.in
     echo adj_potim = 0 >> ../job.in
@@ -126,6 +125,7 @@ while ( $stop == 0 )
     #echo === Optimized Lattice Vectors === >> ../SLUSCHI_mds.out
     #head -5 CONTCAR | tail -4 >> ../SLUSCHI_mds.out
   endif
+  sleep 600
 end # volsearch is completed
 cd ..
 

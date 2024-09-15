@@ -141,5 +141,5 @@ while ($stopflag == 0)
 
 end
 echo killing script
-touch meltcoex_is_done
+touch meltcoex_is_completed
 cp OUTCAR_history OUTCAR

@@ -39,7 +39,7 @@ while ( $temp < $temp_end )
   endif
   @ temp = $temp + 1
 end
-rm record_results_stop_tmp
+if ( -e record_results_stop_tmp ) rm record_results_stop_tmp
 
 if ( -e jobs_results.out ) then
   cp jobs_to_run.out jobs_to_run.out_tmp

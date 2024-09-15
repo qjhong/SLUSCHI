@@ -199,7 +199,7 @@ while ($stopflag == 0)
       endif
     endif
     # cannot achieve converge
-    if ( -d 1000 ) then
+    if ( -d 2000 ) then
       @ stopflag = 1
       echo $snapnum 2 FAILED! ABANDON. >> ../record_results
     endif
