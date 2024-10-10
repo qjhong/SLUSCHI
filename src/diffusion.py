@@ -117,15 +117,16 @@ def diff(filename):
                 if len(tmp) > 6:
                     stepsize = float(Line.split(' ')[6])
                 else:
-                    print('Error reading POTIM')
+                    print('WARNING: Error reading POTIM. It may cause failure to calculate diffusion coefficient.')
                     print(Line)
                 #print(Line.split(' '))
                 #stepsize = float(Line.split(' ')[5])
             if Line.startswith( '   number of dos'):            
                 natom = int(Line.split('NIONS =    ')[1])
-                print("natom: ","{:.0f}".format(natom))
+                #print("natom: ","{:.0f}".format(natom))
         except:
             file.close()
+    print("natom: ","{:.0f}".format(natom))
     
     import os
     #os.environ["PATH"] = "/Library/TeX/texbin" + os.pathsep + os.getenv("PATH")
@@ -205,13 +206,16 @@ def diff(filename):
         #print(np.square(time_his[-1]))
         mean_his = np.asarray(mean_his)
         #print(np.polyfit(time_his,mean_his,1, full=True))
-        print(np.floor(len(time_his)*0.1))
-        print(int(np.floor(len(time_his)*0.1)))
-        print(time_his[int(np.floor(len(time_his)*0.1)):])
+        #print(np.floor(len(time_his)*0.1))
+        #print(int(np.floor(len(time_his)*0.1)))
+        #print(time_his[int(np.floor(len(time_his)*0.1)):])
         [c,res,rank,sig,rcod] = np.polyfit(time_his[int(np.floor(len(time_his)*0.1)):],mean_his[int(np.floor(len(time_his)*0.1)):],1, full=True)
         var = np.var(mean_his)*len(mean_his)
         R2 = 1.-res/var
         print(c,res,var, R2)
+        print('Total MD length: '+str(time_his[-1]))
+        print('Diffusion coefficient is: '+str(c[0]))
+        print('R2 of the linear fitting is: '+str(R2))
         plt.plot(time_his/1000,time_his*c[0]+c[1],color='m')
         max_mean_his = max(mean_his)
         plt.text(max(time_his/1000)/100,max(mean_his)*0.95,"D2 = "+"{:.2e}".format(c[0])+"t+"+"{:.2f}".format(c[1]))

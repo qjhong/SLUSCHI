@@ -6,7 +6,9 @@ if ( ! -e POSCAR_0 ) then
   python lmp_pos.py
 endif
 
-@ natoms = `tail -1 lmp.dump | awk '{print $1}'`
+#@ natoms = `tail -1 lmp.dump | awk '{print $1}'`
+set datafile = `grep '^read_data' ../in* | awk '{print $2}'`
+@ natoms = `head -3 ../$datafile | tail -1 | awk '{print $1}'`
 set step = `grep timestep ../in* | awk '{print $2}'`
 @ nelms = `grep mass ../in* | wc -l`
 rm pos latt step param

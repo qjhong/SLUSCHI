@@ -1,5 +1,8 @@
 #!/bin/csh
 
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+set path_src = $sluschipath/mds_lmp_src/
+
 set n_elms = `head -1 param*`
 @ n = $n_elms + 1
 @ n_iter = `cat latt* | wc -l`
@@ -16,6 +19,10 @@ set V2 = `tail -1 param* | head -1`
 set Selec = `tail -8 param* | head -1`
 set Sconf = `grep med entropy.out -A5 | grep -v med | grep -v '\-\-' | grep -v '^$' | xargs `
 set Sconf_min = `grep min_S_vec entropy.out -A3 | grep -v min | grep -v '\-\-' | grep -v '^$' | xargs `
+
+echo $Sconf > Sconf.txt
+echo $Sconf_min > Sconf_min.txt
+
 echo '===== ANALYSIS STARTED ====='
 echo 'Curent folder is ...'
 pwd
@@ -24,9 +31,13 @@ echo 'temperature: ' $T ' K'
 echo 'iteration: ' $n_iter ' MD steps.'
 echo 'volume: ' $V $V1 $V2 ' Ang^3 per atom. 0 for lammps results. please calculate from lammps output.'
 echo 'energy: ' $E $E1 $E2 ' eV per atom. 0 for lammps results. please calculate from lammps output.'
-echo 'Svib: ' $Svib1 ' J/K/mol atom. 1,2,...,n'
+echo 'Svib: ' $Svib1 ' J/K/mol atom. 1,2,...,n. Do NOT use this value.'
 echo 'Svib: ' $Svib2 ' Constrained by ideal gas entropy. Use this value, not the line above.'
 echo 'Selec: ' $Selec ' J/K/mol atom. 0 for lammps results.'
 echo 'Sconf: ' $Sconf ' J/K/mol atom, 1-1, 1-2, ..., 2-1, 2-2,..., n-1, n-2,... n-n'
 echo 'Sconf_min: ' $Sconf_min ' J/K/mol atom, 1-1, 1-2, ..., 2-1, 2-2,..., n-1, n-2,... n-n'
+echo '---- Sconf ----'
+echo 'I suggest that you use these values...'
+python $path_src/Sconf.py
+echo '---- Sconf ----'
 echo '===== ANALYSIS COMPLETED ====='
