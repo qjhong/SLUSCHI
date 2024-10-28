@@ -2,7 +2,10 @@
 set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
 set path_src = $sluschipath/mds_src/
 
-gunzip */OUTCAR.gz
+@ l = `find . -name OUTCAR.gz | wc -l`
+if ( $l > 0 ) then
+  find . -name OUTCAR.gz | xargs gunzip
+endif
 $sluschipath/collect.csh OUTCAR
 set n = $1
 set nlines = `awk 'BEGIN{print '$n'*3}'`
@@ -10,7 +13,7 @@ grep 'Primitive cell' OUTCAR_collect -A  7 | grep -v cell | grep -v latt | grep 
 @ n_latt = `cat latt | wc -l`
 echo $n_latt
 if ( $n_latt == 0 ) then 
-  echo "try another way to generate latt"
+  echo "trying another way to generate latt"
   grep "k-points in units of" OUTCAR_collect -B9 | grep lattice -A3 | grep -v lattice | grep -v '^$' | grep -v '\-\-' | sed 's/\-/ \-/g' | tail -$nlines > latt; 
 endif
 

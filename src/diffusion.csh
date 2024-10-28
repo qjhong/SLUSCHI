@@ -6,7 +6,6 @@ echo $path_cur
 set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
 set path_src = $sluschipath/mds_src/
  
-pwd
 # n files
 @ n = 1
 while ( -d $n )

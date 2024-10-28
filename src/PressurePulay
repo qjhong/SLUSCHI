@@ -38,6 +38,7 @@ $sluschipath/UpdateINCAR PREC high
 sed -i '/ENCUT/d' INCAR
 $sluschipath/UpdateINCAR ALGO A
 echo TIME = 0.03 >> INCAR
+rm WAVECAR
 $vaspcmd jobsub >> jobsub.log
 rm OUTCAR
 

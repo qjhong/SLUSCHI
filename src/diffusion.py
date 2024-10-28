@@ -65,6 +65,7 @@ def diff(filename):
     dist_his = []
     time = 0
     time_his = []
+    stepsize = 10.0
     while i==0 or Line:# and counter < 17000:
     #while i < 100000:
         i += 1
@@ -117,8 +118,9 @@ def diff(filename):
                 if len(tmp) > 6:
                     stepsize = float(Line.split(' ')[6])
                 else:
-                    print('WARNING: Error reading POTIM. It may cause failure to calculate diffusion coefficient.')
-                    print(Line)
+                    if stepsize == 10.0 and len(time_his) > 0:
+                        print('WARNING: Error reading POTIM. It may cause failure to calculate diffusion coefficient.')
+                        print(Line)
                 #print(Line.split(' '))
                 #stepsize = float(Line.split(' ')[5])
             if Line.startswith( '   number of dos'):            
@@ -181,9 +183,9 @@ def diff(filename):
     #os.environ["PATH"] = "/Library/TeX/texbin" + os.pathsep + os.getenv("PATH")
     #plt.rcParams["font.family"] = "Times New Roman"                                 
     #plt.rcParams['text.usetex'] = True
-    font = {'size'   : 18}
+    font = {'size'   : 14}
     plt.rc('font', **font)
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(9,6))
     #import matplotlib as mpl
     #mpl.rcParams.update(mpl.rcParamsDefault)
     natom_sum = 0
@@ -213,13 +215,13 @@ def diff(filename):
         var = np.var(mean_his)*len(mean_his)
         R2 = 1.-res/var
         print(c,res,var, R2)
-        print('Total MD length: '+str(time_his[-1]))
-        print('Diffusion coefficient is: '+str(c[0]))
-        print('R2 of the linear fitting is: '+str(R2))
+        print('Total MD length: \t\t'+str(time_his[-1])+' ps')
+        print('Diffusion coefficient is: \t'+str(c[0]/6.) + ' Ang^2/ps or '+str(c[0]/60.) + ' cm^2/s')
+        print('R2 of the linear fitting is: \t'+str(R2[0]))
         plt.plot(time_his/1000,time_his*c[0]+c[1],color='m')
         max_mean_his = max(mean_his)
-        plt.text(max(time_his/1000)/100,max(mean_his)*0.95,"D2 = "+"{:.2e}".format(c[0])+"t+"+"{:.2f}".format(c[1]))
-        plt.text(max(time_his/1000)/100,max(mean_his)*0.88,"R2: "+"{:.2f}".format(R2[0]))
+        plt.text(max(time_his/1000)/100,max(mean_his)*0.95,"$\sigma^2$ = "+"{:.1e}".format(c[0]/10.)+"$\cdot t$+"+"{:.1e}".format(c[1]/60.)+", $D$: "+"{:.1e}".format(c[0]/60.)+" cm$^2$/s, R$^2$: "+"{:.2f}".format(R2[0]))
+        #plt.text(max(time_his/1000)/100,max(mean_his)*0.88,"R2: "+"{:.2f}".format(R2[0]))
         natom_sum = natom_sum + natoms[j]
     #mean_his=[]
     #for i in range(dist_his.shape[0]):
@@ -246,7 +248,7 @@ def diff(filename):
     #plt.text(1000,max_y*0.95,'Oxygen',color='r')
     #plt.text(1000,max_y*0.9,'Iron',color='k')
     plt.xlabel('Time [ps]')
-    plt.ylabel('Distance$^2$ [\AA$^2$]')
+    plt.ylabel('Distance$^2$ [$\AA^2$]')
     plt.grid(which='both')
     #plt.xlim([0,16])
     #plt.ylim([0,50])
