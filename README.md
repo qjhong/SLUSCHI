@@ -2,6 +2,8 @@
 <!-- wp:wp-bootstrap-blocks/row {"template":"custom"} -->
 <!-- wp:wp-bootstrap-blocks/column {"sizeMd":10} -->
 
+<figure class="wp-block-image size-large"><img src="https://faculty.engineering.asu.edu/hong/wp-content/uploads/sites/65/2024/10/Screenshot-2024-10-28-at-2.27.32-PM.png" alt="" class="wp-image-83"/></figure>
+
 
 <!-- wp:heading -->
 <h2 class="wp-block-heading">Documentation</h2>
