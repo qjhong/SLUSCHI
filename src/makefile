@@ -10,18 +10,18 @@ all: $(TAR)
 	echo set sluschipath=$(PWD) > $(HOME)/.sluschi.rc
 	cp SLUSCHI StartJob autojob* getinfo.csh $(HOME)/bin
 	@echo "Checking if DIRECTORY is already in PATH..."
-	@if grep -q 'export PATH=$$PATH:$(DIRECTORY)' ~/.bashrc; then \
+	@if grep -q 'export PATH=$$PATH:$(PWD)' ~/.bashrc; then \
 		echo "DIRECTORY is already in PATH."; \
 	else \
 		echo "Adding DIRECTORY to PATH..."; \
-		echo "export PATH=$$PATH:$(DIRECTORY)" | tee -a $(HOME)/.bashrc; \
+		echo "export PATH=$$PATH:$(PWD)" | tee -a $(HOME)/.bashrc; \
 		echo "DIRECTORY added to PATH. Please restart your shell."; \
 	fi
-	@if grep -q 'export PATH=$$PATH:$(DIRECTORY)' ~/.zshrc; then \
+	@if grep -q 'export PATH=$$PATH:$(PWD)' ~/.zshrc; then \
 		echo "DIRECTORY is already in PATH."; \
 	else \
 		echo "Adding DIRECTORY to PATH..."; \
-		echo "export PATH=$$PATH:$(DIRECTORY)" | tee -a $(HOME)/.zshrc; \
+		echo "export PATH=$$PATH:$(PWD)" | tee -a $(HOME)/.zshrc; \
 		echo "DIRECTORY added to PATH. Please restart your shell."; \
 	fi
 
