@@ -42,7 +42,7 @@ I possess the Arizona Plate of SLUSCHI; find it hidden somewhere on the ASU camp
 
 <!-- wp:list {"ordered":true} -->
 <ol class="uds-list"><!-- wp:list-item -->
-<li>mds_lmp: mds with interface to LAMMPS.</li>
+<li>mds_lmp: mds with interface to LAMMPS. <a href="https://osf.io/zvmw8/">User Manual</a> </li>
 <!-- /wp:list-item -->
 
 <!-- wp:list-item -->
