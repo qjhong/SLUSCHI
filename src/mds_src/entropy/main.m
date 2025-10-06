@@ -4,12 +4,56 @@ set(0, 'DefaultFigureVisible', 'off');
 %for i = 1:size(nstep_vec,2)
 %nstep = nstep_vec(i);
 system = ['replace_here'];
-Nnu = 100;
+Nnu = 1000;
 % step_unit = 2.4;
+S_p_1_max = 0;
+S_p_2_max = 0;
+fid = fopen('vib.out','w');
+[SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,natom,step_unit,n_elms,niter] = onephase_v5(system,Nnu);
+S_p_1_max = max(S_p_1_max,S_p_1);
+S_p_2_max = max(S_p_2_max,S_p_2);
+fprintf(fid,'%f\n',S_p_1);
+fprintf(fid,'%f\n',S_p_2);
+fprintf(fid,'%f\n',S_id);
+fprintf(fid,'%f\n',n_int);
+fprintf(fid,'%f\n',natom);
 [SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,natom,step_unit,n_elms,niter] = onephase_v6(system,Nnu);
-SS
-S_p_1
-S_p_2
+S_p_1_max = max(S_p_1_max,S_p_1);
+S_p_2_max = max(S_p_2_max,S_p_2);
+fprintf(fid,'%f\n',S_p_1);
+fprintf(fid,'%f\n',S_p_2);
+fprintf(fid,'%f\n',S_id);
+fprintf(fid,'%f\n',n_int);
+fprintf(fid,'%f\n',natom);
+[SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,natom,step_unit,n_elms,niter] = onephase_v7(system,Nnu);
+%S_p_2_max = max(S_p_2_max,S_p_2);
+fprintf(fid,'%f\n',S_p_1);
+fprintf(fid,'%f\n',S_p_2);
+fprintf(fid,'%f\n',S_id);
+fprintf(fid,'%f\n',n_int);
+fprintf(fid,'%f\n',natom);
+[SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,natom,step_unit,n_elms,niter] = onephase_v8(system,Nnu);
+S_p_1_max = max(S_p_1_max,S_p_1);
+S_p_2_max = max(S_p_2_max,S_p_2);
+fprintf(fid,'%f\n',S_p_1);
+fprintf(fid,'%f\n',S_p_2);
+fprintf(fid,'%f\n',S_id);
+fprintf(fid,'%f\n',n_int);
+fprintf(fid,'%f\n',natom);
+[SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,natom,step_unit,n_elms,niter] = onephase_v9(system,Nnu);
+S_p_1_max = max(S_p_1_max,S_p_1);
+S_p_2_max = max(S_p_2_max,S_p_2);
+fprintf(fid,'%f\n',S_p_1);
+fprintf(fid,'%f\n',S_p_2);
+fprintf(fid,'%f\n',S_id);
+fprintf(fid,'%f\n',n_int);
+fprintf(fid,'%f\n',natom);
+fclose(fid);
+%SS
+S_p_1_final = S_p_1_max;
+S_p_2_final = S_p_2_max;
+S_p_1_final
+S_p_2_final
 S_id
 n_int
 natom

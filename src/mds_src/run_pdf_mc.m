@@ -5,27 +5,27 @@ format shortG
 for ii = 1:n_elms
 for jj = 1:n_elms
     for j = 1:size(avg_iter_vec,2);
-        avg_iter = round(avg_iter_vec(j));
-        [S_xlogx,S_plogp,S_plogp_merge1,S_plogp_merge2,R_cut,n_NN,avg_iter,R_x_s,R_anal_s,count_anal_s,elms] = pdf_v6(system,ii,jj,0,avg_iter,j);
+        avg_iter = round(avg_iter_vec(j))
+        [S_xlogx,S_plogp,S_plogp_merge1,S_plogp_merge2,R_cut,n_NN,avg_iter,R_x_s,R_anal_s,count_anal_s,elms] = pdf_mc(system,ii,jj,0,avg_iter,j);
         %[nstep/100,avg_iter,S_plogp]
         S_vec(j) = S_plogp;
     end
     close
     plot(avg_iter_vec,S_vec);hold on
-    for i = 1:size(S_vec,2)
-        text(avg_iter_vec(i),S_vec(i),num2str(S_vec(i)))
-    end
-    n_int = size(S_vec,2)/4;
-    max_S = max(S_vec)+1.0;
-    med = zeros(4,1);
-    for j = 1:4
-        i_start = 1+n_int*(j-1); i_end = n_int*(j);
-        med(j) = median(S_vec(i_start:i_end));
-        text(avg_iter_vec(i_start),max_S-0.2*j,strcat('median: ',num2str(med(j))));
-    end
-    min_S_vec = min(S_vec);
-    ii,jj,med,min_S_vec
-    ylim([0,max_S+0.2])
+    %for i = 1:size(S_vec,2)
+    %    text(avg_iter_vec(i),S_vec(i),num2str(S_vec(i)))
+    %end
+    %n_int = size(S_vec,2)/4;
+    %max_S = max(S_vec)+1.0;
+    %med = zeros(4,1);
+    %for j = 1:4
+    %    i_start = 1+n_int*(j-1); i_end = n_int*(j);
+    %    med(j) = median(S_vec(i_start:i_end));
+    %    text(avg_iter_vec(i_start),max_S-0.2*j,strcat('median: ',num2str(med(j))));
+    %end
+    %min_S_vec = min(S_vec);
+    ii,jj,S_vec
+    ylim([0,S_vec(1)+0.2])
     title(strcat(replace(system,'_',' '),'K',' ',' S\_plogp',' ',replace(elms{ii},'_','\_'),' ',replace(elms{jj},'_','\_')))
     xlabel('n\_avg')
     ylabel('S [J/mol/K]')

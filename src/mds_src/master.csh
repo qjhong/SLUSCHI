@@ -33,11 +33,14 @@ while ( $l > 0 )
   echo $n folders will be used to run analysis
   $path_src/script_v4.csh $n
   # mkdir and cp
+  rm -r entropy
   if ( ! -d entropy ) then
     mkdir entropy
   endif
+  date
   cp $path_src/entropy/* entropy
-  cp pos param latt step entropy
+  mv pos param latt step entropy
+  date
   set temp = `grep temp job.in | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
   echo $temp
   set liquid = `grep thmexp_liq job.in | cut -d'=' -f2 | sed 's/ //'`
@@ -69,15 +72,20 @@ matlab -r "run('main.m'); exit;" > entropy.out
   cd -
 # run 2
   # run script
-  @ n = $n - $n_exclude
+  if ( $n_exclude < 50 ) then
+    @ n = $n - $n_exclude
+  else
+    @ n = $n - 50
+  endif
   echo $n folders will be used to run analysis
   $path_src/script_v4.csh $n
   # mkdir and cp
+  rm -r entropy1
   if ( ! -d entropy1 ) then
     mkdir entropy1
   endif
   cp $path_src/entropy/* entropy1
-  cp pos param latt step entropy1
+  mv pos param latt step entropy1
   set temp = `grep temp job.in | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
   echo $temp
   set liquid = `grep thmexp_liq job.in | cut -d'=' -f2 | sed 's/ //'`
@@ -109,15 +117,20 @@ matlab -r "run('main.m'); exit;" > entropy.out
   cd -
 # run 3
   # run script
-  @ n = $n - $n_exclude
+  if ( $n_exclude < 50 ) then
+    @ n = $n - $n_exclude
+  else
+    @ n = $n - 50
+  endif
   echo $n folders will be used to run analysis
   $path_src/script_v4.csh $n
   # mkdir and cp
+  rm -r entropy2
   if ( ! -d entropy2 ) then
     mkdir entropy2
   endif
   cp $path_src/entropy/* entropy2
-  cp pos param latt step entropy2
+  mv pos param latt step entropy2
   set temp = `grep temp job.in | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
   echo $temp
   set liquid = `grep thmexp_liq job.in | cut -d'=' -f2 | sed 's/ //'`

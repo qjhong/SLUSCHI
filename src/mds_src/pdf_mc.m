@@ -4,7 +4,7 @@ h=6.626e-34;
 eV = 1.602e-19;
 k_B=1.38e-23;
 
-[n_elms,n_atoms,mass,elms,n_atoms_total,stepsize,T,POS,LATT,VEL,step_unit] = read_files(filename);
+[n_elms,n_atoms,mass,elms,n_atoms_total,stepsize,T,POS,LATT,VEL,step_unit] = read_files_mc(filename);
 niter = size(POS,3);
 
 % Calculate velocity and position
@@ -18,49 +18,50 @@ n_atoms_acc = n_atoms;
 for i = 2:size(n_atoms,1)
     n_atoms_acc(i) = n_atoms_acc(i-1) + n_atoms_acc(i);
 end
+n_atoms_acc
 for iter=1:niter
-    if mod(iter,avg_iter)==1
-        POS0 = POS(:,:,iter);
-    else
-        DIST(:,:) = POS(:,:,iter)-POS0;
-        latt = LATT( :, :, iter );
-        for iatom=1:n_atoms_total
-        if norm(DIST(:,iatom)) > 1.
-            stopflag = 0;min_norm = 100;
-            for i=-1:1
-            for j=-1:1
-            for k=-1:1
-                tmp = DIST(:,iatom);
-                % tmp = tmp + LATT( :, :, floor((iter-1)/80) + 1 ) * [i;j;k];
-                tmp = tmp + latt * [i;j;k];
-                tmp_norm = norm(tmp);
-                if tmp_norm < min_norm
-                    min_norm = min(min_norm,tmp_norm);
-                    min_tmp = tmp;
-                end
-                if norm(tmp) < 5.
-                    stopflag = 1;
-                    break
-                end
-            end
-            if stopflag==1
-                break
-            end
-            end
-            if stopflag==1 
-                break
-            end
-            end
-            if stopflag == 0
-                %VEL(:,iatom)
-                %LATT( :, :, floor((iter-1)/80) + 1 )
-                %min_norm
-            end
-            DIST(:,iatom) = min_tmp;
-        end
-        end
-        POS(:,:,iter) = POS(:,:,iter-1) + POS0 + DIST;
-    end
+    %if mod(iter,avg_iter)==1
+    %    POS0 = POS(:,:,iter);
+    %else
+    %    DIST(:,:) = POS(:,:,iter)-POS0;
+    %    latt = LATT( :, :, iter );
+    %    for iatom=1:n_atoms_total
+    %    %if norm(DIST(:,iatom)) > 1.
+    %    %    stopflag = 0;min_norm = 100;
+    %    %    for i=-1:1
+    %    %    for j=-1:1
+    %    %    for k=-1:1
+    %    %        tmp = DIST(:,iatom);
+    %    %        % tmp = tmp + LATT( :, :, floor((iter-1)/80) + 1 ) * [i;j;k];
+    %    %        tmp = tmp + latt * [i;j;k];
+    %    %        tmp_norm = norm(tmp);
+    %    %        if tmp_norm < min_norm
+    %    %            min_norm = min(min_norm,tmp_norm);
+    %    %            min_tmp = tmp;
+    %    %        end
+    %    %        if norm(tmp) < 5.
+    %    %            stopflag = 1;
+    %    %            break
+    %    %        end
+    %    %    end
+    %    %    if stopflag==1
+    %    %        break
+    %    %    end
+    %    %    end
+    %    %    if stopflag==1 
+    %    %        break
+    %    %    end
+    %    %    end
+    %    %    if stopflag == 0
+    %    %        %VEL(:,iatom)
+    %    %        %LATT( :, :, floor((iter-1)/80) + 1 )
+    %    %        %min_norm
+    %    %    end
+    %    %    DIST(:,iatom) = min_tmp;
+    %    %end
+    %    %end
+    %    POS(:,:,iter) = POS(:,:,iter-1) + POS0 + DIST;
+    %end
     %calculate radial distribution
     if mod(iter,avg_iter) == 0
         POS(:,:,iter) = POS(:,:,iter)/avg_iter;
@@ -158,7 +159,8 @@ for i = 1:n_R
         flag_decrease = 1;
     end
     %if flag_increase == 1 && flag_decrease == 1 && R_anal(i)>R_anal(i-1)+1e-10 && max(R_anal(i-1:i)-R_anal(i:i+1)) < 0. % for two "merging" peaks which approach zero after R_cut
-    if i>1 && flag_increase == 1 && flag_decrease == 1 && R_anal(i)>R_anal(i-1)+1e-10 && max(R_anal(i-1:i)-R_anal(i:i+1)) < 0. % for two "merging" peaks which approach zero after R_cut
+    %if i>1 && flag_increase == 1 && flag_decrease == 1 && R_anal(i)>R_anal(i-1)+1e-10 && max(R_anal(i-1:i)-R_anal(i:i+1)) < 0. % for two "merging" peaks which approach zero after R_cut
+    if i>1 && flag_increase == 1 && flag_decrease == 1 && R_anal(i)>R_anal(i-1)+1e-10 %&& max(R_anal(i-1:i)-R_anal(i:i+1)) < 0. % for two "merging" peaks which approach zero after R_cut
       %R_anal(i-1:i)-R_anal(i:i+1)
         R_cut = R_x(i-1);
         if R_cut > 5

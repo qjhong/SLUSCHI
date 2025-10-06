@@ -2,7 +2,7 @@
 
 rm param step latt pos
 set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
-set path_src = $sluschipath/mds_lmp_src/
+set path_src = $sluschipath/mds_src/
 
 set n_elms = `head -1 param*`
 @ n = $n_elms + 1

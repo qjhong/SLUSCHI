@@ -117,7 +117,7 @@ while ( $stop == 0 )
     cd -
   endif
   find .. -name job.in | grep Dir | xargs -n1 -i cp ../job.in {} > /dev/null
-  if ( -e volsearch_is_completed ) then
+  if ( -e volsearch_is_completed || -e volsearch_is_done ) then
     @ stop = 1
     echo \*\*\* I find that the volume search completed. \*\*\* >> ../SLUSCHI_mds.out
     #echo === Initial Lattice Vectors === >> ../SLUSCHI_mds.out

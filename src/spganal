@@ -1,0 +1,5 @@
+#!/bin/csh
+
+set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
+collect.csh OUTCAR
+python $sluschipath/spg_sub_latt.py

@@ -95,9 +95,11 @@ def diff(filename):
                         dist_mat = position - position0
                         dist = []
                         for v in dist_mat: dist.append(np.linalg.norm(v))
-                        dist_his.append(dist)
                         time += stepsize
-                        time_his.append(time)
+                        #if time > 1000:
+                        if time > 0:
+                            dist_his.append(dist)
+                            time_his.append(time)
                     counter += 1
                     if counter%4000 == 0: print(counter)
                     #if counter == 20000:
@@ -139,6 +141,7 @@ def diff(filename):
     time_his = np.asarray(time_his)
     plt.close()
     clr = ['r','g','c','b','k']
+    #print(dist_his.shape)
     for i in range(dist_his.shape[1]):
         natom_sum = 0
         for j in range(len(natoms)):
@@ -149,7 +152,7 @@ def diff(filename):
     max_y = np.max(dist_his)
     plt.text(0,max_y*0.95,'Oxygen',color='r')
     plt.text(0,max_y*0.9,'Iron',color='k')
-    plt.xlabel('Time [ps]')
+    plt.xlabel('Time [fs]')
     plt.ylabel('Distance [\AA]')
     plt.grid(which='both')
     plt.savefig('diffusion.pdf')
@@ -174,7 +177,7 @@ def diff(filename):
     max_y = np.max(dist_his_mean)
     plt.text(1000,max_y*0.95,'Oxygen',color='r')
     plt.text(1000,max_y*0.9,'Iron',color='k')
-    plt.xlabel('Time [ps]')
+    plt.xlabel('Time [fs]')
     plt.ylabel('Distance [\AA]')
     plt.grid(which='both')
     plt.savefig('diffusion_avg.pdf')
@@ -183,13 +186,14 @@ def diff(filename):
     #os.environ["PATH"] = "/Library/TeX/texbin" + os.pathsep + os.getenv("PATH")
     #plt.rcParams["font.family"] = "Times New Roman"                                 
     #plt.rcParams['text.usetex'] = True
-    font = {'size'   : 14}
+    font = {'size'   : 18}
     plt.rc('font', **font)
     plt.figure(figsize=(9,6))
     #import matplotlib as mpl
     #mpl.rcParams.update(mpl.rcParamsDefault)
     natom_sum = 0
     for j in range(len(natoms)):
+        print('Element # '+str(j+1))
         mean_his=[]
         for i in range(dist_his.shape[0]):
             mean = np.mean( np.square(dist_his[i,natom_sum:natom_sum+natoms[j]]) )
@@ -211,16 +215,26 @@ def diff(filename):
         #print(np.floor(len(time_his)*0.1))
         #print(int(np.floor(len(time_his)*0.1)))
         #print(time_his[int(np.floor(len(time_his)*0.1)):])
-        [c,res,rank,sig,rcod] = np.polyfit(time_his[int(np.floor(len(time_his)*0.1)):],mean_his[int(np.floor(len(time_his)*0.1)):],1, full=True)
+        #[c,res,rank,sig,rcod] = np.polyfit(time_his[int(np.floor(len(time_his)*0.1)):],mean_his[int(np.floor(len(time_his)*0.1)):],1, full=True)
+        [c,res,rank,sig,rcod] = np.polyfit(time_his[int(np.floor(len(time_his)*0.1)):],mean_his[int(np.floor(len(time_his)*0.1)):],1, full=True,)
         var = np.var(mean_his)*len(mean_his)
         R2 = 1.-res/var
         print(c,res,var, R2)
-        print('Total MD length: \t\t'+str(time_his[-1])+' ps')
-        print('Diffusion coefficient is: \t'+str(c[0]/6.) + ' Ang^2/ps or '+str(c[0]/60.) + ' cm^2/s')
-        print('R2 of the linear fitting is: \t'+str(R2[0]))
+        print('Total MD length: \t\t'+str("{:.2f}".format(time_his[-1])+' fs'))
+        print('Diffusion coefficient is: \t'+str("{:.2e}".format(c[0]/6.)) + ' Ang^2/fs or '+str("{:.2e}".format(c[0]/60.)) + ' cm^2/s')
+        print('R2 of the linear fitting is: \t'+str("{:.2f}".format(R2[0])))
         plt.plot(time_his/1000,time_his*c[0]+c[1],color='m')
         max_mean_his = max(mean_his)
+        #plt.text(max(time_his/1000)/100+1,max(mean_his)*0.95,"$\sigma^2$ = "+"{:.1e}".format(c[0]/10.)+"$\cdot t$+"+"{:.1e}".format(c[1]/60.)+", $D$: "+"{:.1e}".format(c[0]/60.)+" cm$^2$/s, R$^2$: "+"{:.2f}".format(R2[0]))
         plt.text(max(time_his/1000)/100,max(mean_his)*0.95,"$\sigma^2$ = "+"{:.1e}".format(c[0]/10.)+"$\cdot t$+"+"{:.1e}".format(c[1]/60.)+", $D$: "+"{:.1e}".format(c[0]/60.)+" cm$^2$/s, R$^2$: "+"{:.2f}".format(R2[0]))
+        coeffs, cov = np.polyfit(time_his[int(np.floor(len(time_his)*0.1)):],mean_his[int(np.floor(len(time_his)*0.1)):], 1, cov=True)
+        slope = coeffs[0]
+        intercept = coeffs[1]
+        slope_uncertainty = np.sqrt(cov[0, 0])  # Standard error of the slope
+        intercept_uncertainty = np.sqrt(cov[1, 1])  # Standard error of the intercept
+        print('The uncertainty of the slope is: \t'+str("{:.2e}".format(np.sqrt(cov[0, 0])/60.)))
+        #print(mean_his)
+
         #plt.text(max(time_his/1000)/100,max(mean_his)*0.88,"R2: "+"{:.2f}".format(R2[0]))
         natom_sum = natom_sum + natoms[j]
     #mean_his=[]

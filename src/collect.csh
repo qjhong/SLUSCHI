@@ -1,6 +1,10 @@
 #!/bin/csh
 
-@ iter = 1
+if ( $#argv >= 2 ) then
+  @ iter = $2 + 1
+else
+  @ iter = 1
+endif
 
 if ( -e $1_collect ) rm $1_collect
 

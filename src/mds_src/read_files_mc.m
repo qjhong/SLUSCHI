@@ -155,8 +155,8 @@ function [n_elms,n_atoms,mass,elms,n_atoms_total,stepsize,T,POS_LONG,LATT_LONG,V
         dPOS = convert_in_cell(dPOS,latt_cur);
         for j = 1:round(step_cur/step_unit)
             iter_pos_long = iter_pos_long + 1;
-            POS_LONG(:,:,iter_pos_long) = POS(:,:,i) + dPOS / round(step_cur/step_unit) * j;
-            VEL_LONG(:,:,iter_pos_long) = VEL(:,:,i) + dVEL / round(step_cur/step_unit) * j;
+            POS_LONG(:,:,iter_pos_long) = POS(:,:,i);
+            VEL_LONG(:,:,iter_pos_long) = VEL(:,:,i);
             LATT_LONG(:,:,iter_pos_long) = latt_cur;
         end
     end

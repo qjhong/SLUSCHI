@@ -39,7 +39,7 @@ mkdir src_coex/anal/history
 cat - << EOF >> SLUSCHI.out
 ====================================================================================================
 Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces (SLUSCHI)
-by Qi-Jun Hong and Axel van de Walle
+by Qi-Jun Hong
 EOF
 
 echo "====================================================================================================" >> SLUSCHI.out

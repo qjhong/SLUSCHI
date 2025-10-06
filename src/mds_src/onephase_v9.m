@@ -80,7 +80,7 @@ end
 
 n = n_atoms_total;
 V = V/n*1e-30;
-fid = fopen('phonon_dos_v6.out','w');
+fid = fopen('phonon_dos_v9.out','w');
 for i_elm = 1:n_elms
 lambda = sqrt(h^2/(2*pi*mass(i_elm)*k_B*T));
 S_id(i_elm)=(5/2 + log(V/lambda^3) )*k_B*6.023e23;
@@ -155,6 +155,97 @@ set(findobj(gcf,'Type','text'),'FontSize',FS,'FontName','Times New Roman');
 set(gcf,'PaperPositionMode','auto')
 set(gcf, 'Color', 'w');
 print('-f1','-r600','-dpng',strcat(filename,'_S_',elms{i_elm}));
+
+area0 = area;
+area = 0;
+int0 = zeros(nn,1);
+int1 = zeros(nn,1);
+for i=1:nn-1
+    nu_curr = ( nunu(i)+nunu(i+1) ) / 2;
+    area = area + (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    % dos = k * x^2;
+    % int = 1/3 * k * x^3;
+    k = area*3/(nunu(i+1)^3);
+    for j = 1:i
+        nu_curr = ( nunu(j)+nunu(j+1) ) / 2;
+        SS_curr = k * nu_curr^2;
+        F_1_corr(j+1) = T * k_B * log( 2 * sinh( h*nu_curr / (2*k_B*T) ) )  * SS_curr *nu_max/(nn-1);
+        E_1_corr(j+1) = h*nu_curr/2 *  (exp(h*nu_curr/k_B/T)+1) / (exp(h*nu_curr/k_B/T)-1) * SS_curr *nu_max/(nn-1);
+    end
+    for j = i+1:nn-1
+        nu_curr = ( nunu(j)+nunu(j+1) ) / 2;
+        F_1_corr(j+1) = T * k_B * log( 2 * sinh( h*nu_curr / (2*k_B*T) ) )  * (SS(j)+SS(j+1))/2*nu_max/(nn-1);
+        E_1_corr(j+1) = h*nu_curr/2 *  (exp(h*nu_curr/k_B/T)+1) / (exp(h*nu_curr/k_B/T)-1) * (SS(j)+SS(j+1))/2*nu_max/(nn-1);
+    end
+    int0(i) = -(sum(F_1)/area0*3/eV-sum(E_1)/area0*3/eV)/T*96485;
+    int1(i) = -(sum(F_1_corr)/area0*3/eV-sum(E_1_corr)/area0*3/eV)/T*96485;
+    % F_1(i+1) = T * k_B * log( 2 * sinh( h*nu_curr / (2*k_B*T) ) )  * (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    % F_2(i+1) = T * max(-S_id(i_elm)/3/6.023e23+k_B, k_B * log( 2 * sinh( h*nu_curr / (2*k_B*T) ) ) ) * (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    % E_1(i+1) = h*nu_curr/2 *  (exp(h*nu_curr/k_B/T)+1) / (exp(h*nu_curr/k_B/T)-1) * (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+end
+close
+plot(SS)
+pause(1)
+close
+plot(int0)
+hold on
+plot(int1)
+set(gcf,'PaperPositionMode','auto')
+set(gcf, 'Color', 'w');
+print('-f1','-r600','-dpng',strcat(filename,'_S_corr_',elms{i_elm}));
+[v,idx]=max(int1)
+area = 0;
+for i=1:idx
+    nu_curr = ( nunu(i)+nunu(i+1) ) / 2;
+    area = area + (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    k = area*3/(nunu(i+1)^3);
+end
+for j = 1:idx
+    nu_curr =  nunu(j);
+    SS(j) = k * nu_curr^2;
+end
+close
+plot(nunu,SS)
+grid on
+FS=16;
+xlabel('$\nu$ [s$^{-1}$]','Interpreter','Latex')
+ylabel('$DoS$','Interpreter','Latex')
+title(strcat(replace(filename,'_','\_'),'K ','\_',replace(elms(i_elm),'_','\_')))
+set(gca,'FontSize',FS,'FontName','Times New Roman')%,'ytick',[1000,2000,3000,4000])
+set(findobj(gcf,'Type','text'),'FontSize',FS,'FontName','Times New Roman');
+set(gcf,'PaperPositionMode','auto')
+set(gcf, 'Color', 'w');
+print('-f1','-r600','-dpng',strcat(filename,'_phonon_DOS_corr_',elms{i_elm}));
+
+area = 0;
+flag_correction=1;
+for i=1:nn-1
+    %nu_curr = ( nu(i)+nu(i+1) ) / 2;
+    %F(i+1) = F(i) + k * T * log( 2 * sinh( h*nu_curr / (2*k*T) ) ) * (S(i)+S(i+1))/2*nu_max/(n-1);
+    %F(i+1) = k * T * log( 2 * sinh( h*nu_curr / (2*k*T) ) ) * (S(i)+S(i+1))/2*nu_max/(n-1);
+    nu_curr = ( nunu(i)+nunu(i+1) ) / 2;
+    F_1(i+1) = T * k_B * log( 2 * sinh( h*nu_curr / (2*k_B*T) ) )  * (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    F_2(i+1) = T * max(-S_id(i_elm)/3/6.023e23+k_B, k_B * log( 2 * sinh( h*nu_curr / (2*k_B*T) ) ) ) * (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    E_1(i+1) = h*nu_curr/2 *  (exp(h*nu_curr/k_B/T)+1) / (exp(h*nu_curr/k_B/T)-1) * (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    area = area + (SS(i)+SS(i+1))/2*nu_max/(nn-1);
+    % 3 translational degrees of freedom are missing in VASP
+    % assuming: 1. they are the softest modes in DOS
+    %           2. they are equally distributed among elements
+    % 3 DOF distributed in n_atoms(i_elm) / sum(n_atoms)
+    % area final value is 3 * n_atoms(i_elm)
+    if flag_correction==1 && area > 3 * n_atoms(i_elm) / sum(n_atoms) % time to keep a copy of correction
+	area_c = area;
+	E_1_c = sum(E_1(1:i+1));
+	F_1_c = sum(F_1(1:i+1));
+	F_2_c = sum(F_2(1:i+1));
+	flag_correction=0;
+    end
+    if SS(i) > max_SS
+        max_SS = SS(i);
+        idx_SS = i;
+    end
+end
+
 E = 3*k_B*T/eV
 %E_1 = (sum(E_1))/area*3/eV
 E_1 = (sum(E_1)+E_1_c)/(area+area_c)*3/eV

@@ -1,0 +1,5 @@
+v5: original
+v6: corrects the missing three DOF
+v7: correction with quadratic fitting. really aggressive and over corrects
+v8: correction with contraints.
+v9: quadratic fitting but contraints area.
