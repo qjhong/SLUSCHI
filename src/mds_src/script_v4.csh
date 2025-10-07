@@ -11,7 +11,7 @@ set n = $1
 set nlines = `awk 'BEGIN{print '$n'*3}'`
 grep 'Primitive cell' OUTCAR_collect -A  7 | grep -v cell | grep -v latt | grep -v '^$' | grep -v '\-\-' | sed 's/\-/ \-/g' | tail -$nlines > latt
 @ n_latt = `cat latt | wc -l`
-echo $n_latt
+#echo $n_latt
 if ( $n_latt == 0 ) then 
   echo "trying another way to generate latt"
   grep "k-points in units of" OUTCAR_collect -B9 | grep lattice -A3 | grep -v lattice | grep -v '^$' | grep -v '\-\-' | sed 's/\-/ \-/g' | tail -$nlines > latt; 
@@ -34,6 +34,7 @@ grep PAW POTCAR | grep -v TIT | grep -v LPAW | grep -v radia | awk '{print $2}' 
 set nlines = `awk 'BEGIN{print '$n'*80}'`
 grep 'energy  without entropy=' OUTCAR_collect | awk '{print $4}' | tail -$nlines > for_avg
 $sluschipath/avg_std.x 
+echo "MD steps |   C1   |   C2   | Block size | C3 | Average Potential Energy | Standard Error"
 cat avg_std.out
 set E = `head -1 avg_std.out | awk '{print $6}'`
 set E2 = `head -2 avg_std.out | tail -1 | awk '{print $6}'`
@@ -42,10 +43,12 @@ set E3 = `head -3 avg_std.out | tail -1 | awk '{print $6}'`
 set nlines = `awk 'BEGIN{print '$n'*80}'`
 grep 'free  energy   TOTEN' OUTCAR_collect | awk '{print $5}' | tail -$nlines > for_avg
 $sluschipath/avg_std.x 
+echo "MD steps |   C1   |   C2   | Block size | C3 | Average Potential Energy | Standard Error"
 cat avg_std.out
 set F = `head -1 avg_std.out | awk '{print $6}'`
 set T = `grep TEBEG OUTCAR_collect | tail -1 | awk '{print $3}' | cut -d';' -f1`
 set S = `awk -v var1="$T" -v var2="$natom" 'BEGIN{print ('$E'-('$F'))/var1*96485}'`
+echo "Potential Energy with Electronic Entropy | Potential Energy | Temperature | Electronic Entropy"
 echo $F, $E, $T, $S
 echo $S >> param
 echo $E >> param
@@ -55,7 +58,8 @@ echo $F >> param
 
 grep vol OUTCAR_collect | grep ion | awk '{print $5}' | tail -$n > for_avg
 $sluschipath/avg_std.x 
-cat avg_std.out | awk '{print $1,$2,$3,$4,$5,$6*'$natom'}'
+echo "MD steps | C1 | C2 | Block size | C3 | Average Volume | Standard Error"
+cat avg_std.out | awk '{print $1,$2,$3,$4,$5,$6*'$natom',$7*'$natom'}'
 set V = `head -1 avg_std.out | awk '{print $6*'$natom'}'`
 set V2 = `head -2 avg_std.out | tail -1 | awk '{print $6*'$natom'}'`
 set V3 = `head -3 avg_std.out | tail -1 | awk '{print $6*'$natom'}'`
@@ -63,7 +67,8 @@ echo $V >> param
 echo $V2 >> param
 echo $V3 >> param
 
-grep Ela OUTCAR_collect | awk '{sum+=$4;} END{print sum;}' | awk '{print $1*48/3600}'
+#grep Ela OUTCAR_collect | awk '{sum+=$4;} END{print sum;}' | awk '{print Total CPU Hours Spent: $1*48/3600}'
+grep Ela OUTCAR_collect | awk '{ sum += $4 } END { printf "Total Physical Hours Spent: %.3f\n", sum / 3600 }'
 
 set n = $1
 grep POTIM OUTCAR_collect | grep step| tail -$n | awk '{print $3}' > step

@@ -50,7 +50,7 @@ def read_natoms():
     tmp = Line.split('  ')
     #print(tmp)
     natoms = [int(item.replace(" ", "").replace("\n", "")) for item in tmp if item != ""]
-    print(natoms)
+    print('Number of Atoms: ',natoms)
     file.close()
     return natoms
 
@@ -101,7 +101,13 @@ def diff(filename):
                             dist_his.append(dist)
                             time_his.append(time)
                     counter += 1
-                    if counter%4000 == 0: print(counter)
+                    #if counter%4000 == 0: print(counter)
+                    if counter % 4000 == 0:
+                        if counter == 4000:
+                            print("reading...", end="", flush=True)
+                        else:
+                            print(f" {counter}", end="", flush=True)
+
                     #if counter == 20000:
                     #    for i in range(dist_mat.shape[0]):
                     #        print(dist_mat[i])
@@ -193,6 +199,7 @@ def diff(filename):
     #mpl.rcParams.update(mpl.rcParamsDefault)
     natom_sum = 0
     for j in range(len(natoms)):
+        if j==0: print()
         print('Element # '+str(j+1))
         mean_his=[]
         for i in range(dist_his.shape[0]):
