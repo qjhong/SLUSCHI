@@ -104,7 +104,7 @@ def diff(filename):
                     #if counter%4000 == 0: print(counter)
                     if counter % 4000 == 0:
                         if counter == 4000:
-                            print("reading...", end="", flush=True)
+                            print("reading MD...", end="", flush=True)
                         else:
                             print(f" {counter}", end="", flush=True)
 
