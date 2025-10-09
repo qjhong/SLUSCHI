@@ -135,10 +135,8 @@ def get_pos(strct_name):
     lattice_his = np.asarray(lattice_his)
     
     ##%%
-    #print()
-    #print(natms)
     print()
-    print('Number of Atoms: ',natms)
+    print(natms)
     #print(ntype)
     #ll = position_his.shape[0]
     #position_tmp = position_his[ll//2:ll,:,:]
@@ -163,7 +161,8 @@ def spg_anal(strct_name, frac):
     #return 0
 
 #strct_name = 'Nd_H_2300'
-    cutoff = [1,2,4,8]
+    #cutoff = [1,2,4,8]
+    cutoff = [2,4,8]
     [position_his,lattice_his,natoms,ntype,natms] = get_pos(strct_name)
     ll = position_his.shape[0]
 
@@ -197,23 +196,36 @@ def spg_anal(strct_name, frac):
         print(" Based on the last %d MD steps, \tthe spacegroup of the structure is %s (tol = 0.02) \t %s (tol = 0.05) \t %s (tol = 0.1) \t %s (tol = 0.2) \t %s (tol = 0.5) \t %s (tol = 1.0) \t %s (tol = 2.0) \t %s (tol = 3.0)." 
               % ( position_his.shape[0]//c, spglib.get_spacegroup(strct,symprec=2e-2), spglib.get_spacegroup(strct,symprec=5e-2), spglib.get_spacegroup(strct,symprec=1e-1), spglib.get_spacegroup(strct,symprec=3e-1), spglib.get_spacegroup(strct,symprec=5e-1), spglib.get_spacegroup(strct,symprec=10e-1), spglib.get_spacegroup(strct,symprec=20e-1), spglib.get_spacegroup(strct,symprec=30e-1) ) )
         # Symmetrize the structure
-        #standardized_cell = spglib.standardize_cell(
-        #    strct, symprec=5e-1,
-        #    to_primitive=False,  # Set to True for a primitive cell, False for a conventional cell
-        #    no_idealize=False    # Set to True to avoid idealizing lattice parameters
-        #)
-        #
-        ## Extract symmetrized lattice, positions, and atomic numbers
-        #sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
-        #
-        #print("Symmetrized Lattice:")
-        #print(sym_lattice)
-        #print("Symmetrized Positions:")
-        #print(sym_positions)
-        #print("Symmetrized Atomic Numbers:")
-        #print(sym_atomic_numbers)
+        standardized_cell = spglib.standardize_cell(
+            strct, symprec=10e-1,
+            to_primitive=False,  # Set to True for a primitive cell, False for a conventional cell
+            no_idealize=False    # Set to True to avoid idealizing lattice parameters
+        )
+        
+        # Extract symmetrized lattice, positions, and atomic numbers
+        sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
+        
+        print("Symmetrized Lattice:")
+        print(sym_lattice)
+        print("Symmetrized Positions:")
+        print(sym_positions)
+        print("Symmetrized Atomic Numbers:")
+        print(sym_atomic_numbers)
 
     print("")
+    with open('POSCAR_SLUSCHI', 'w') as out:
+        out.write("POSCAR by SLUSCHI\n")
+        out.write("1.0\n")
+        # lattice vectors: each line is vector components (VASP expects 3 lines)
+        for vec in sym_lattice:
+            out.write(str(vec[0])+' '+str(vec[1])+' ' +str(vec[2]) + "\n")
+        out.write("X\n")
+        out.write(str(len(sym_atomic_numbers)) + "\n")
+        out.write("Direct\n")
+        for p in sym_positions:
+            out.write("{: .16f} {: .16f} {: .16f}\n".format(p[0], p[1], p[2]))
+
+    print(f"Wrote POSCAR")
     
 
     natms = [int(x) for x in natms]
@@ -226,6 +238,8 @@ def spg_anal(strct_name, frac):
           start_index = sum(natms[:nsep])                               
                                                                                 
        end_index = start_index + natms[nsep] 
+       #start_index = 0
+       #end_index = natms[0]+natms[1]
 
        for c in cutoff:                                                            
           pos = np.mean(position_his[ll - ll//c:,:,:],axis=0)                     
@@ -235,7 +249,7 @@ def spg_anal(strct_name, frac):
           #print(pos)                                                             
           latt = [tuple(lat) for lat in latt]                                     
           pos = [tuple(pos[i]) for i in range(start_index, end_index)]
-          atomind = [1] * natms[nsep]                     
+          atomind = [1] * (end_index - start_index)
           strct = (                                                               
                  latt,                                                               
                  pos,                                                                
@@ -252,23 +266,24 @@ def spg_anal(strct_name, frac):
         #time.sleep(5)                                                          
           print(" Based on the last %d MD steps, \tthe spacegroup of the structure is %s (tol = 0.02) \t %s (tol = 0.05) \t %s (tol = 0.1) \t %s (tol = 0.2) \t %s (tol = 0.5) \t %s (tol = 1.0) \t %s (tol = 2.0) \t %s (tol = 3.0)." 
               % ( position_his.shape[0]//c, spglib.get_spacegroup(strct,symprec=2e-2), spglib.get_spacegroup(strct,symprec=5e-2), spglib.get_spacegroup(strct,symprec=1e-1), spglib.get_spacegroup(strct,symprec=3e-1), spglib.get_spacegroup(strct,symprec=5e-1), spglib.get_spacegroup(strct,symprec=10e-1), spglib.get_spacegroup(strct,symprec=20e-1), spglib.get_spacegroup(strct,symprec=30e-1) ) )
-        # Symmetrize the structure
-          #standardized_cell = spglib.standardize_cell(
-          #    strct, symprec=10e-1,
-          #    to_primitive=False,  # Set to True for a primitive cell, False for a conventional cell
-          #    no_idealize=False    # Set to True to avoid idealizing lattice parameters
-          #)
+          # Symmetrize the structure
+          standardized_cell = spglib.standardize_cell(
+              strct, symprec=10e-1,
+              to_primitive=False,  # Set to True for a primitive cell, False for a conventional cell
+              no_idealize=False    # Set to True to avoid idealizing lattice parameters
+          )
           
           # Extract symmetrized lattice, positions, and atomic numbers
-          #sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
-          #
-          #print("Symmetrized Lattice:")
-          #print(sym_lattice)
-          #print("Symmetrized Positions:")
-          #print(sym_positions)
-          #print("Symmetrized Atomic Numbers:")
-          #print(sym_atomic_numbers)
-       print("")  
+          sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
+          
+          print("Symmetrized Lattice:")
+          print(sym_lattice)
+          print("Symmetrized Positions:")
+          print(sym_positions)
+          print("Symmetrized Atomic Numbers:")
+          print(sym_atomic_numbers)
+          print("")  
+
 #          spg_anal('',1.0)
 #    print("")
 
