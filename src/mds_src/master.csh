@@ -41,7 +41,7 @@ while ( $l > 0 )
   cp $path_src/entropy/* entropy
   mv pos param latt step entropy
   date
-  set temp = `grep temp job.in | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
+  set temp = `grep temp job.in | head -1 | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
   echo $temp
   set liquid = `grep thmexp_liq job.in | cut -d'=' -f2 | sed 's/ //'`
   cd entropy
@@ -86,7 +86,7 @@ matlab -r "run('main.m'); exit;" > entropy.out
   endif
   cp $path_src/entropy/* entropy1
   mv pos param latt step entropy1
-  set temp = `grep temp job.in | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
+  set temp = `grep temp job.in | head -1 | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
   echo $temp
   set liquid = `grep thmexp_liq job.in | cut -d'=' -f2 | sed 's/ //'`
   cd entropy1
@@ -131,7 +131,7 @@ matlab -r "run('main.m'); exit;" > entropy.out
   endif
   cp $path_src/entropy/* entropy2
   mv pos param latt step entropy2
-  set temp = `grep temp job.in | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
+  set temp = `grep temp job.in | head -1 | cut -d'=' -f2 | sed 's/ //g' | cut -d'.' -f1`
   echo $temp
   set liquid = `grep thmexp_liq job.in | cut -d'=' -f2 | sed 's/ //'`
   cd entropy2

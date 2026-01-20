@@ -6,8 +6,16 @@ set path_src = $sluschipath/mds_src/
 if ( $l > 0 ) then
   find . -name OUTCAR.gz | xargs gunzip
 endif
-$sluschipath/collect.csh OUTCAR
-set n = $1
+@ l = `find . -name OUTCAR | wc -l`
+if ( $l > 0 ) then
+  $sluschipath/collect.csh OUTCAR
+endif
+if ( $1 == 0 ) then
+  set n1 = `grep POSI OUTCAR_collect | wc -l`
+  @ n =  $n1 / 80
+else
+  set n = $1
+endif
 set nlines = `awk 'BEGIN{print '$n'*3}'`
 grep 'Primitive cell' OUTCAR_collect -A  7 | grep -v cell | grep -v latt | grep -v '^$' | grep -v '\-\-' | sed 's/\-/ \-/g' | tail -$nlines > latt
 @ n_latt = `cat latt | wc -l`
@@ -24,8 +32,10 @@ set param1 = `awk 'BEGIN{print '$natom'+1}'`
 set param2 = `awk 'BEGIN{print '$natom'*80*'$n'}'`
 grep POSI OUTCAR_collect -A$param1 | grep -v POSI | grep -v '\-\-' | tail -$param2 > pos
 
+if ( ! -e POTCAR ) head -10000 OUTCAR_collect > POTCAR
 grep POMASS POTCAR | wc -l > param
-head -7 POSCAR | tail -1 >> param
+#head -7 POSCAR | tail -1 >> param
+grep 'ions per type' OUTCAR_collect | head -1 | cut -d"=" -f2  >> param
 grep POMASS POTCAR | awk '{print $3}' | cut -d';' -f1 >> param
 grep POTIM OUTCAR_collect | head -2 | grep -v use | head -1 | awk '{print $3}'a >> param
 cat natom >> param

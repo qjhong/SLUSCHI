@@ -97,8 +97,7 @@ def get_pos(strct_name):
                 if counter % 4000 == 0:
                     if counter == 4000:
                         print("reading MD...", end="", flush=True)
-                    else:
-                        print(f" {counter}", end="", flush=True)
+                    print(f" {counter}", end="", flush=True)
 
                 position_last = position
                 position_his.append(position)
@@ -202,30 +201,31 @@ def spg_anal(strct_name, frac):
             no_idealize=False    # Set to True to avoid idealizing lattice parameters
         )
         
-        # Extract symmetrized lattice, positions, and atomic numbers
-        sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
-        
-        print("Symmetrized Lattice:")
-        print(sym_lattice)
-        print("Symmetrized Positions:")
-        print(sym_positions)
-        print("Symmetrized Atomic Numbers:")
-        print(sym_atomic_numbers)
+        if standardized_cell is not None:
+            # Extract symmetrized lattice, positions, and atomic numbers
+            sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
+            
+            print("Symmetrized Lattice:")
+            print(sym_lattice)
+            print("Symmetrized Positions:")
+            print(sym_positions)
+            print("Symmetrized Atomic Numbers:")
+            print(sym_atomic_numbers)
 
-    print("")
-    with open('POSCAR_SLUSCHI', 'w') as out:
-        out.write("POSCAR by SLUSCHI\n")
-        out.write("1.0\n")
-        # lattice vectors: each line is vector components (VASP expects 3 lines)
-        for vec in sym_lattice:
-            out.write(str(vec[0])+' '+str(vec[1])+' ' +str(vec[2]) + "\n")
-        out.write("X\n")
-        out.write(str(len(sym_atomic_numbers)) + "\n")
-        out.write("Direct\n")
-        for p in sym_positions:
-            out.write("{: .16f} {: .16f} {: .16f}\n".format(p[0], p[1], p[2]))
+            print("")
+            with open('POSCAR_SLUSCHI', 'w') as out:
+                out.write("POSCAR by SLUSCHI\n")
+                out.write("1.0\n")
+                # lattice vectors: each line is vector components (VASP expects 3 lines)
+                for vec in sym_lattice:
+                    out.write(str(vec[0])+' '+str(vec[1])+' ' +str(vec[2]) + "\n")
+                out.write("X\n")
+                out.write(str(len(sym_atomic_numbers)) + "\n")
+                out.write("Direct\n")
+                for p in sym_positions:
+                    out.write("{: .16f} {: .16f} {: .16f}\n".format(p[0], p[1], p[2]))
 
-    print(f"Wrote POSCAR")
+            print(f"Wrote POSCAR")
     
 
     natms = [int(x) for x in natms]
@@ -273,16 +273,31 @@ def spg_anal(strct_name, frac):
               no_idealize=False    # Set to True to avoid idealizing lattice parameters
           )
           
-          # Extract symmetrized lattice, positions, and atomic numbers
-          sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
-          
-          print("Symmetrized Lattice:")
-          print(sym_lattice)
-          print("Symmetrized Positions:")
-          print(sym_positions)
-          print("Symmetrized Atomic Numbers:")
-          print(sym_atomic_numbers)
-          print("")  
+          if standardized_cell is not None:
+              # Extract symmetrized lattice, positions, and atomic numbers
+              sym_lattice, sym_positions, sym_atomic_numbers = standardized_cell
+              
+              print("Symmetrized Lattice:")
+              print(sym_lattice)
+              print("Symmetrized Positions:")
+              print(sym_positions)
+              print("Symmetrized Atomic Numbers:")
+              print(sym_atomic_numbers)
+
+              print("")
+              with open('POSCAR_SLUSCHI_'+str(nsep)+'_'+str(c), 'w') as out:
+                  out.write("POSCAR by SLUSCHI\n")
+                  out.write("1.0\n")
+                  # lattice vectors: each line is vector components (VASP expects 3 lines)
+                  for vec in sym_lattice:
+                      out.write(str(vec[0])+' '+str(vec[1])+' ' +str(vec[2]) + "\n")
+                  out.write("X\n")
+                  out.write(str(len(sym_atomic_numbers)) + "\n")
+                  out.write("Direct\n")
+                  for p in sym_positions:
+                      out.write("{: .16f} {: .16f} {: .16f}\n".format(p[0], p[1], p[2]))
+
+              print(f"Wrote POSCAR")
 
 #          spg_anal('',1.0)
 #    print("")

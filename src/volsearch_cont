@@ -201,6 +201,10 @@ while ($stopflag == 0)
       $vaspcmd jobsub >> jobsub.log
       set nstep = `expr $nstep + 1`
       echo Job $nstep submitted. Waiting for job $nstep to finish... 
+      if ( -d 50 && $count == 0 ) then
+        diffusion.csh 
+        spganal 
+      endif
     endif
   endif
   endif

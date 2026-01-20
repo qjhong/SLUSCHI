@@ -8,6 +8,7 @@ Created on Wed Sep  6 14:10:47 2023
 import re
 import numpy as np
 from matplotlib import pyplot as plt
+#from line_profiler import profile
 
 def line2vec(s):
     list_s = re.split('([- ])', s)
@@ -54,6 +55,7 @@ def read_natoms():
     file.close()
     return natoms
 
+#@profile
 def diff(filename):
     #strct = 'Er_L_3100'
     natoms = read_natoms()
@@ -85,33 +87,36 @@ def diff(filename):
                 remain_position -= 1
                 if remain_position == 0: 
                     flag_position = False
-                    position = np.asarray(position)
                     if counter == 0:
+                        position = np.asarray(position)
                         position0 = position
+                        position_last = position
                     else:
-                        # match this position with last one
-                        position = pos_match(position_last, position, lattice)
-                        # calculate distance
-                        dist_mat = position - position0
-                        dist = []
-                        for v in dist_mat: dist.append(np.linalg.norm(v))
                         time += stepsize
-                        #if time > 1000:
-                        if time > 0:
-                            dist_his.append(dist)
-                            time_his.append(time)
-                    counter += 1
+                        if counter % 10 == 0:
+                            position = np.asarray(position)
+                            # match this position with last one
+                            position = pos_match(position_last, position, lattice)
+                            # calculate distance
+                            dist_mat = position - position0
+                            dist = []
+                            for v in dist_mat: dist.append(np.linalg.norm(v))
+                            #if time > 1000:
+                            if time > 0:
+                                dist_his.append(dist)
+                                time_his.append(time)
+                            position_last = position
                     #if counter%4000 == 0: print(counter)
+                    counter += 1
+                    #print(counter)
                     if counter % 4000 == 0:
                         if counter == 4000:
                             print("reading MD...", end="", flush=True)
-                        else:
-                            print(f" {counter}", end="", flush=True)
+                        print(f" {counter}", end="", flush=True)
 
                     #if counter == 20000:
                     #    for i in range(dist_mat.shape[0]):
                     #        print(dist_mat[i])
-                    position_last = position
     
             if Line.startswith( '      direct lattice vectors'): 
                 flag_lattice = True
@@ -136,7 +141,8 @@ def diff(filename):
                 #print("natom: ","{:.0f}".format(natom))
         except:
             file.close()
-    print("natom: ","{:.0f}".format(natom))
+    print()
+    print("natoms: ","{:.0f}".format(natom))
     
     import os
     #os.environ["PATH"] = "/Library/TeX/texbin" + os.pathsep + os.getenv("PATH")
@@ -146,7 +152,7 @@ def diff(filename):
     dist_his = np.asarray(dist_his)
     time_his = np.asarray(time_his)
     plt.close()
-    clr = ['r','g','c','b','k']
+    clr = ['r','g','c','b','k','r','g','c','b','k']
     #print(dist_his.shape)
     for i in range(dist_his.shape[1]):
         natom_sum = 0

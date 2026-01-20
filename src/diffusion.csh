@@ -20,6 +20,6 @@ else
 endif
 @ n = $n - $n_exclude
 echo $n folders will be used to run analysis
-$path_src/script_v4.csh $n
+$path_src/script_v4.csh $n | tee summary.out
 collect.csh OUTCAR $n_exclude
-python $sluschipath/diffusion.py
+python $sluschipath/diffusion.py | tee diffusion.out

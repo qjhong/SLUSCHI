@@ -84,14 +84,14 @@ cd ..
 
 echo "====================================================================================================" >> SLUSCHI_mds.out
 getinfo.csh radius job.in > size.in
-$sluschipath/solid.x >> SLUSCHI_mds.out
-cat POSCAR_HEADER POSCAR_STRCT > POSCAR
+#$sluschipath/solid.x >> SLUSCHI_mds.out
+#cat POSCAR_HEADER POSCAR_STRCT > POSCAR
 
 echo "====================================================================================================" >> SLUSCHI_mds.out
 if ( ! -e Dir_VolSearch ) then
   mkdir Dir_VolSearch
   cd Dir_VolSearch
-  $sluschipath/volsearch >> log.out &
+#  $sluschipath/volsearch >> log.out &
   echo \*\*\* Volume search is running. Please check it is still running in Dir_VolSearch \*\*\* >> ../SLUSCHI_mds.out
   echo \*\*\* Please read Dir_VolSearch/log.out for details. \*\*\* >> ../SLUSCHI_mds.out
 else

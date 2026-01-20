@@ -48,6 +48,8 @@ grep PAW POTCAR | grep -v TIT | grep -v LPAW | grep -v radia | awk '{print $2}' 
 
 set nlines = `awk 'BEGIN{print '$n'*80}'`
 grep 'energy  without entropy=' OUTCAR_collect | awk '{print $4}' | tail -$nlines > for_avg
+cp for_avg energy_md.out
+grep '(temperature' OUTCAR_collect | awk '{print $6}' | tail -$nlines > temp_md.out
 $sluschipath/avg_std.x 
 echo "MD steps |   C1   |   C2   | Block size | C3 | Average Potential Energy | Standard Error"
 cat avg_std.out
