@@ -32,14 +32,22 @@ set param1 = `awk 'BEGIN{print '$natom'+1}'`
 set param2 = `awk 'BEGIN{print '$natom'*80*'$n'}'`
 grep POSI OUTCAR_collect -A$param1 | grep -v POSI | grep -v '\-\-' | tail -$param2 > pos
 
-if ( ! -e POTCAR ) head -10000 OUTCAR_collect > POTCAR
-grep POMASS POTCAR | wc -l > param
+if ( -e POTCAR ) then
+  set l = `cat POTCAR | wc -l`
+else
+  @ l = 0
+endif
+if ( $l == 0 ) then
+  head -10000 OUTCAR_collect > POTCAR
+endif
+set n_elm = `grep POMASS POTCAR | grep ZVAL | wc -l`
+echo $n_elm > param
 #head -7 POSCAR | tail -1 >> param
 grep 'ions per type' OUTCAR_collect | head -1 | cut -d"=" -f2  >> param
-grep POMASS POTCAR | awk '{print $3}' | cut -d';' -f1 >> param
+grep POMASS POTCAR | grep ZVAL | awk '{print $3}' | cut -d';' -f1 >> param
 grep POTIM OUTCAR_collect | head -2 | grep -v use | head -1 | awk '{print $3}'a >> param
 cat natom >> param
-grep PAW POTCAR | grep -v TIT | grep -v LPAW | grep -v radia | awk '{print $2}' >> param
+grep PAW POTCAR | grep -v TIT | grep -v LPAW | grep -v radia | head -$n_elm | sed 's/POTCAR://' | awk '{print $2}' >> param
 
 set nlines = `awk 'BEGIN{print '$n'*80}'`
 grep 'energy  without entropy=' OUTCAR_collect | awk '{print $4}' | tail -$nlines > for_avg
