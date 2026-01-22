@@ -52,13 +52,22 @@ def read_natoms():
     #print(tmp)
     natoms = [int(item.replace(" ", "").replace("\n", "")) for item in tmp if item != ""]
     print('Number of Atoms: ',natoms)
+    for item in natoms:
+        Line = file.readline() 
+    Line = file.readline()
+    Line = file.readline()
+    type_atoms = []
+    for item in natoms:
+        Line = file.readline()
+        type_atoms.append(Line.replace("\n", ""))
+    print('Type of Atoms: ',type_atoms)
     file.close()
-    return natoms
+    return natoms,type_atoms
 
 #@profile
 def diff(filename):
     #strct = 'Er_L_3100'
-    natoms = read_natoms()
+    natoms,type_atoms = read_natoms()
     file = open(filename, 'r')
     
     i = 0
@@ -165,7 +174,7 @@ def diff(filename):
     #plt.text(0,max_y*0.95,'Oxygen',color='r')
     #plt.text(0,max_y*0.9,'Iron',color='k')
     plt.xlabel('Time [fs]')
-    plt.ylabel('Distance [$\mathrm{\AA}$]')
+    plt.ylabel(r'Distance [$\mathrm{\AA}$]')
     plt.grid(which='both')
     plt.savefig('diffusion.pdf')
       
@@ -190,7 +199,7 @@ def diff(filename):
     #plt.text(1000,max_y*0.95,'Oxygen',color='r')
     #plt.text(1000,max_y*0.9,'Iron',color='k')
     plt.xlabel('Time [fs]')
-    plt.ylabel('Distance [$\mathrm{\AA}$]')
+    plt.ylabel(r'Distance [$\mathrm{\AA}$]')
     plt.grid(which='both')
     plt.savefig('diffusion_avg.pdf')
     
@@ -206,7 +215,7 @@ def diff(filename):
     natom_sum = 0
     for j in range(len(natoms)):
         if j==0: print()
-        print('Element # '+str(j+1))
+        print('Element # '+str(j+1)+' '+type_atoms[j])
         mean_his=[]
         for i in range(dist_his.shape[0]):
             mean = np.mean( np.square(dist_his[i,natom_sum:natom_sum+natoms[j]]) )
@@ -234,12 +243,12 @@ def diff(filename):
         R2 = 1.-res/var
         print(c,res,var, R2)
         print('Total MD length: \t\t'+str("{:.2f}".format(time_his[-1])+' fs'))
-        print('Diffusion coefficient is: \t'+str("{:.2e}".format(c[0]/6.)) + ' Ang^2/fs or '+str("{:.2e}".format(c[0]/60.)) + ' cm^2/s')
+        print('\033[31mDiffusion coefficient is: \t'+str("{:.2e}".format(c[0]/6.)) + ' Ang^2/fs or '+str("{:.2e}".format(c[0]/60.)) + ' cm^2/s\033[0m')
         print('R2 of the linear fitting is: \t'+str("{:.2f}".format(R2[0])))
         plt.plot(time_his/1000,time_his*c[0]+c[1],color='m')
         max_mean_his = max(mean_his)
         #plt.text(max(time_his/1000)/100+1,max(mean_his)*0.95,"$\sigma^2$ = "+"{:.1e}".format(c[0]/10.)+"$\cdot t$+"+"{:.1e}".format(c[1]/60.)+", $D$: "+"{:.1e}".format(c[0]/60.)+" cm$^2$/s, R$^2$: "+"{:.2f}".format(R2[0]))
-        plt.text(max(time_his/1000)/100,max(mean_his)*0.95,"$\sigma^2$ = "+"{:.1e}".format(c[0]/10.)+"$\cdot t$+"+"{:.1e}".format(c[1]/60.)+", $D$: "+"{:.1e}".format(c[0]/60.)+" cm$^2$/s, R$^2$: "+"{:.2f}".format(R2[0]))
+        plt.text(max(time_his/1000)/100,max(mean_his)*0.95,r"$\sigma^2$ = "+"{:.1e}".format(c[0]/10.)+r"$\cdot t$+"+"{:.1e}".format(c[1]/60.)+", $D$: "+"{:.1e}".format(c[0]/60.)+" cm$^2$/s, R$^2$: "+"{:.2f}".format(R2[0]))
         coeffs, cov = np.polyfit(time_his[int(np.floor(len(time_his)*0.1)):],mean_his[int(np.floor(len(time_his)*0.1)):], 1, cov=True)
         slope = coeffs[0]
         intercept = coeffs[1]
@@ -281,8 +290,22 @@ def diff(filename):
     #plt.ylim([0,50])
     plt.savefig('diffusion_coef.png',dpi=600)
     
+from datetime import datetime
+import os
+
+print()
+print("=" * 40)
+print("        SLUSCHI by Qi-Jun Hong")
+print("=" * 40)
+print()
+TIMESTAMP = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+print(f"=== SLUSCHI DIFFUSION ANALYSIS START: {TIMESTAMP} ===")
+
 diff('OUTCAR_collect')
 
+EXITCODE = 0
+print("")
+print(f"=== SLUSCHI DIFFUSION ANALYSIS DONE: status=OK exit={EXITCODE} ===")
 #diff('Er_L_3300')
 #diff('Er_L_3100')
 #diff('Er_L_2900')
