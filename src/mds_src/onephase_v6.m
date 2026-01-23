@@ -28,33 +28,67 @@ NU = linspace(0,nu_max,Nnu);
 S = zeros(Nnu,n_elms);
 
 idx_start = 1;
+% --- before element loop ---
+% NU is column vector (Nnu x 1), dt scalar
+factor = -2*pi*NU'*dt;        % 1 x Nnu  (or transpose accordingly)
+lags = (-tau+1 : tau);        % 1 x (2*tau)
+% Create COS_lag as Nnu x (2*tau)
+% use implicit expansion or bsxfun for older MATLAB:
+if verLessThan('matlab','9.1') % older than R2016b
+    COS_lag = bsxfun(@cos, factor', lags);  % (Nnu x 2tau)
+else
+    COS_lag = cos(factor * lags);         % (Nnu x 2tau)
+end
 for i_elm = 1:n_elms
     idx_end = idx_start - 1 + n_atoms(i_elm)*3;
-    VEL_v3 = VEL_v2(idx_start:idx_end,:);
-    % VEL_MAT = zeros(2*t0,2*t0);
-    % for Iiter = t0-tau:t0+tau-1
-    % for Jiter = Iiter-tau+1:Iiter+tau
-    %     VEL_MAT(Iiter,Jiter) = VEL_v3(:,Iiter)'*VEL_v3(:,Jiter);
-    % end
-    % VEL_MAT(Iiter,Iiter-tau+1:Iiter+tau) = VEL_v3(:,Iiter)'*VEL_v3(:,Iiter-tau+1:Iiter+tau);
-    % end    
-    % for inu = 1:Nnu
-        % nu = NU(inu);
-        factor = -2*pi*NU'*dt;
-        for Iiter = t0-tau:t0+tau-1
-        % for Jiter = Iiter-tau+1:Iiter+tau
-        %     S(inu,i_elm) = S(inu,i_elm) + VEL_MAT(Iiter,Jiter)*dt^2*cos(-2*pi*nu*(Iiter-Jiter)*dt);
-        % end
-            Jiter = Iiter-tau+1:Iiter+tau;
-            COSJ = cos(factor*(Iiter-Jiter));
-            % S(inu,i_elm) = S(inu,i_elm) + VEL_MAT(Iiter,Iiter-tau+1:Iiter+tau)*COSJ';
-            S(:,i_elm) = S(:,i_elm) + COSJ*(VEL_v3(:,Iiter)'*VEL_v3(:,Iiter-tau+1:Iiter+tau))';
-        end
-        S(:,i_elm) = S(:,i_elm)*dt^2;
-    % end
-    S(:,i_elm) = S(:,i_elm)/2/(tau*dt)*mass(i_elm)*2/k_B/T;
+% --- now inside element loop ---
+% compute VEL_v3 earlier as dims: (ncomp x Nt)
+VEL_v3 = VEL_v2(idx_start:idx_end, :);  % ncomp x Nt
+Nt = size(VEL_v3,2);                    % time length
+
+% precompute time-time inner products once per element (vectorized BLAS)
+% VEL_MAT(i,j) = VEL_v3(:,i)' * VEL_v3(:,j)
+VEL_MAT = VEL_v3' * VEL_v3;  % Nt x Nt
+
+S_col = zeros(Nnu,1);  % accumulate for this element
+for Iiter = t0-tau : t0+tau-1
+    Jrange = (Iiter-tau+1) : (Iiter+tau);
+    row = VEL_MAT(Iiter, Jrange);     % 1 x (2*tau)
+    % multiply: COS_lag (Nnu x 2tau) * row' (2tau x 1) -> Nnu x 1
+    S_col = S_col + COS_lag * row';
+end
+S(:, i_elm) = S_col * dt^2;
+% post-scale as before
+S(:, i_elm) = S(:, i_elm)/2/(tau*dt)*mass(i_elm)*2/k_B/T;
     idx_start = idx_start + n_atoms(i_elm)*3;
 end
+%for i_elm = 1:n_elms
+%    idx_end = idx_start - 1 + n_atoms(i_elm)*3;
+%    VEL_v3 = VEL_v2(idx_start:idx_end,:);
+%    % VEL_MAT = zeros(2*t0,2*t0);
+%    % for Iiter = t0-tau:t0+tau-1
+%    % for Jiter = Iiter-tau+1:Iiter+tau
+%    %     VEL_MAT(Iiter,Jiter) = VEL_v3(:,Iiter)'*VEL_v3(:,Jiter);
+%    % end
+%    % VEL_MAT(Iiter,Iiter-tau+1:Iiter+tau) = VEL_v3(:,Iiter)'*VEL_v3(:,Iiter-tau+1:Iiter+tau);
+%    % end    
+%    % for inu = 1:Nnu
+%        % nu = NU(inu);
+%        factor = -2*pi*NU'*dt;
+%        for Iiter = t0-tau:t0+tau-1
+%        % for Jiter = Iiter-tau+1:Iiter+tau
+%        %     S(inu,i_elm) = S(inu,i_elm) + VEL_MAT(Iiter,Jiter)*dt^2*cos(-2*pi*nu*(Iiter-Jiter)*dt);
+%        % end
+%            Jiter = Iiter-tau+1:Iiter+tau;
+%            COSJ = cos(factor*(Iiter-Jiter));
+%            % S(inu,i_elm) = S(inu,i_elm) + VEL_MAT(Iiter,Iiter-tau+1:Iiter+tau)*COSJ';
+%            S(:,i_elm) = S(:,i_elm) + COSJ*(VEL_v3(:,Iiter)'*VEL_v3(:,Iiter-tau+1:Iiter+tau))';
+%        end
+%        S(:,i_elm) = S(:,i_elm)*dt^2;
+%    % end
+%    S(:,i_elm) = S(:,i_elm)/2/(tau*dt)*mass(i_elm)*2/k_B/T;
+%    idx_start = idx_start + n_atoms(i_elm)*3;
+%end
 % VEL_v2_fft = fft(VEL_v2');
 % sumS = zeros(size(VEL_v2_fft,1),1);
 % for i = 1:natom*3
@@ -141,7 +175,7 @@ set(gcf, 'Color', 'w');
 print('-f1','-r600','-dpng',strcat(filename,'_phonon_DOS_',elms{i_elm}));
 close
 plot(nunu,k_B*(1 - log( 2 * sinh( h*nunu / (2*k_B*T) ) ))*6.023e23)
-pause(10)
+%pause(10)
 close
 plot(nunu,F_1/area*3/eV,'b')
 hold on

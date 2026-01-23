@@ -1,4 +1,4 @@
-function [SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,n_atoms_total,step_unit,n_elms,niter] = onephase_v5(filename,Nnu)
+function [SS,S_p_1,S_p_2,F_1,F_2,nunu,S_id,n_int,n_atoms_total,step_unit,n_elms,niter] = onephase_v6(filename,Nnu)
 
 h=6.626e-34;
 eV = 1.602e-19;
@@ -80,7 +80,7 @@ end
 
 n = n_atoms_total;
 V = V/n*1e-30;
-fid = fopen('phonon_dos_v5.out','w');
+fid = fopen('phonon_dos_v6.out','w');
 for i_elm = 1:n_elms
 lambda = sqrt(h^2/(2*pi*mass(i_elm)*k_B*T));
 S_id(i_elm)=(5/2 + log(V/lambda^3) )*k_B*6.023e23;
@@ -156,18 +156,18 @@ set(gcf,'PaperPositionMode','auto')
 set(gcf, 'Color', 'w');
 print('-f1','-r600','-dpng',strcat(filename,'_S_',elms{i_elm}));
 E = 3*k_B*T/eV
-E_1 = (sum(E_1))/area*3/eV
-%E_1 = (sum(E_1)+E_1_c)/(area+area_c)*3/eV
+%E_1 = (sum(E_1))/area*3/eV
+E_1 = (sum(E_1)+E_1_c)/(area+area_c)*3/eV
 %FF_1 = (sum(F_1)-S_id/6.023e23*T)/area*3/eV;
-FF_1 = (sum(F_1))/area*3/eV;
+%FF_1 = (sum(F_1))/area*3/eV;
 %S_p_1(i_elm) = -(FF_1-E_1)/T*96485
-%FF_1 = (sum(F_1)+F_1_c)/(area+area_c)*3/eV;
+FF_1 = (sum(F_1)+F_1_c)/(area+area_c)*3/eV;
 %S_p_1(i_elm) = -(FF_1-E)/T*96485;
 S_p_1(i_elm) = -(FF_1-E_1)/T*96485;
 %FF_2 = (sum(F_2)-S_id/6.023e23*T)/area*3/eV;
-FF_2 = (sum(F_2))/(area)*3/eV;
+%FF_2 = (sum(F_2))/(area)*3/eV;
 %S_p_2(i_elm) = -(FF_2-E_1)/T*96485
-%FF_2 = (sum(F_2)+F_2_c)/(area+area_c)*3/eV;
+FF_2 = (sum(F_2)+F_1_c)/(area+area_c)*3/eV;
 %S_p_2(i_elm) = -(FF_2-E)/T*96485;
 S_p_2(i_elm) = -(FF_2-E_1)/T*96485;
 %area_id / area

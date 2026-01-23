@@ -245,7 +245,7 @@ set(gcf, 'Color', 'w');
 print('-f1','-r600','-dpng',strcat(filename,'_phonon_DOS_',elms{i_elm}));
 close
 plot(nunu,k_B*(1 - log( 2 * sinh( h*nunu / (2*k_B*T) ) ))*6.023e23)
-pause(10)
+%pause(10)
 close
 plot(nunu,F_1/area*3/eV,'b')
 hold on

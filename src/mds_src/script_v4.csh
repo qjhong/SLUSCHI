@@ -34,6 +34,7 @@ else
   set n = $1
 endif
 set nlines = `awk 'BEGIN{print '$n'*3}'`
+echo $nlines
 grep 'Primitive cell' OUTCAR_collect -A  7 | grep -v cell | grep -v latt | grep -v '^$' | grep -v '\-\-' | sed 's/\-/ \-/g' | tail -$nlines > latt
 @ n_latt = `cat latt | wc -l`
 #echo $n_latt
@@ -57,11 +58,11 @@ endif
 if ( $l == 0 ) then
   head -10000 OUTCAR_collect > POTCAR
 endif
-set n_elm = `grep POMASS POTCAR | grep ZVAL | wc -l`
+set n_elm = `grep 'POMASS =  ' POTCAR | wc -l`
 echo $n_elm > param
 #head -7 POSCAR | tail -1 >> param
 grep 'ions per type' OUTCAR_collect | head -1 | cut -d"=" -f2  >> param
-grep POMASS POTCAR | grep ZVAL | awk '{print $3}' | cut -d';' -f1 >> param
+grep 'POMASS =  ' POTCAR | awk '{print $3}' | cut -d';' -f1 >> param
 grep POTIM OUTCAR_collect | head -2 | grep -v use | head -1 | awk '{print $3}'a >> param
 cat natom >> param
 grep PAW POTCAR | grep -v TIT | grep -v LPAW | grep -v radia | head -$n_elm | sed 's/POTCAR://' | awk '{print $2}' >> param
@@ -70,7 +71,8 @@ set nlines = `awk 'BEGIN{print '$n'*80}'`
 grep 'energy  without entropy=' OUTCAR_collect | awk '{print $4}' | tail -$nlines > for_avg
 $sluschipath/avg_std.x 
 #echo "MD steps |   C1   |   C2   | Block size | C3 | Average Potential Energy | Standard Error"
-echo "MD steps |   C1   |   C2   | Block size | C3 | \033[1;31mAverage Potential Energy [eV/atom]\033[0m | Standard Error [eV/atom]"
+#echo "MD steps |   C1   |   C2   | Block size | C3 | \033[1;31mAverage Potential Energy [eV/atom]\033[0m | Standard Error [eV/atom]"
+echo "MD steps |   C1   |   C2   | Block size | C3 | >>>Average Potential Energy [eV/atom]<<< | Standard Error [eV/atom]"
 cat avg_std.out
 set E = `head -1 avg_std.out | awk '{print $6}'`
 set E2 = `head -2 avg_std.out | tail -1 | awk '{print $6}'`
@@ -80,7 +82,8 @@ set nlines = `awk 'BEGIN{print '$n'*80}'`
 grep 'free  energy   TOTEN' OUTCAR_collect | awk '{print $5}' | tail -$nlines > for_avg
 $sluschipath/avg_std.x 
 #echo "MD steps |   C1   |   C2   | Block size | C3 | Average Potential Energy | Standard Error"
-echo "MD steps |   C1   |   C2   | Block size | C3 | \033[1;31mAverage Potential Energy with Electronic Entropy [eV/atom]\033[0m | Standard Error [eV/atom]"
+#echo "MD steps |   C1   |   C2   | Block size | C3 | \033[1;31mAverage Potential Energy with Electronic Entropy [eV/atom]\033[0m | Standard Error [eV/atom]"
+echo "MD steps |   C1   |   C2   | Block size | C3 | >>>Average Potential Energy with Electronic Entropy [eV/atom]<<< | Standard Error [eV/atom]"
 cat avg_std.out
 set F = `head -1 avg_std.out | awk '{print $6}'`
 set T = `grep TEBEG OUTCAR_collect | tail -1 | awk '{print $3}' | cut -d';' -f1`
@@ -96,7 +99,8 @@ echo $F >> param
 
 grep vol OUTCAR_collect | grep ion | awk '{print $5}' | tail -$n > for_avg
 $sluschipath/avg_std.x 
-echo "MD jobs (80 MD steps each) | C1 | C2 | Block size | C3 | \033[1;31mAverage Volume [Ang^3/atom]\033[0m | Standard Error [Ang^3/atom]"
+#echo "MD jobs (80 MD steps each) | C1 | C2 | Block size | C3 | \033[1;31mAverage Volume [Ang^3/atom]\033[0m | Standard Error [Ang^3/atom]"
+echo "MD jobs (80 MD steps each) | C1 | C2 | Block size | C3 | >>>Average Volume [Ang^3/atom]<<< | Standard Error [Ang^3/atom]"
 cat avg_std.out | awk '{print $1,$2,$3,$4,$5,$6*'$natom',$7*'$natom'}'
 set V = `head -1 avg_std.out | awk '{print $6*'$natom'}'`
 set V2 = `head -2 avg_std.out | tail -1 | awk '{print $6*'$natom'}'`

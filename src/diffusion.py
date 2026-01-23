@@ -243,7 +243,8 @@ def diff(filename):
         R2 = 1.-res/var
         print(c,res,var, R2)
         print('Total MD length: \t\t'+str("{:.2f}".format(time_his[-1])+' fs'))
-        print('\033[31mDiffusion coefficient is: \t'+str("{:.2e}".format(c[0]/6.)) + ' Ang^2/fs or '+str("{:.2e}".format(c[0]/60.)) + ' cm^2/s\033[0m')
+        #print('\033[31mDiffusion coefficient is: \t'+str("{:.2e}".format(c[0]/6.)) + ' Ang^2/fs or '+str("{:.2e}".format(c[0]/60.)) + ' cm^2/s\033[0m')
+        print('>>>Diffusion coefficient is: \t'+str("{:.2e}".format(c[0]/6.)) + ' Ang^2/fs or '+str("{:.2e}".format(c[0]/60.)) + ' cm^2/s<<<')
         print('R2 of the linear fitting is: \t'+str("{:.2f}".format(R2[0])))
         plt.plot(time_his/1000,time_his*c[0]+c[1],color='m')
         max_mean_his = max(mean_his)
@@ -284,7 +285,7 @@ def diff(filename):
     #plt.text(1000,max_y*0.95,'Oxygen',color='r')
     #plt.text(1000,max_y*0.9,'Iron',color='k')
     plt.xlabel('Time [ps]')
-    plt.ylabel('Distance$^2$ [$\mathrm{\AA}^2$]')
+    plt.ylabel(r'Distance$^2$ [$\mathrm{\AA}^2$]')
     plt.grid(which='both')
     #plt.xlim([0,16])
     #plt.ylim([0,50])
