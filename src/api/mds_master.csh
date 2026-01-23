@@ -8,7 +8,9 @@ set path_src = $sluschipath/mds_src/
 echo $path_src
 
 # 1. python getfile.py <arg1>
+set noglob
 python getfile.py $argv[1]
+unset noglob
 
   $path_src/script_v4.csh 0
   # mkdir and cp
