@@ -34,7 +34,7 @@ else
   set n = $1
 endif
 set nlines = `awk 'BEGIN{print '$n'*3}'`
-echo $nlines
+#echo $nlines
 grep 'Primitive cell' OUTCAR_collect -A  7 | grep -v cell | grep -v latt | grep -v '^$' | grep -v '\-\-' | sed 's/\-/ \-/g' | tail -$nlines > latt
 @ n_latt = `cat latt | wc -l`
 #echo $n_latt
