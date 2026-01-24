@@ -14,7 +14,7 @@ unset noglob
 
   $path_src/script_v4.csh 0
   # mkdir and cp
-  rm -r entropy
+  if ( -d entropy ) rm -r entropy
   if ( ! -d entropy ) then
     mkdir entropy
   endif
@@ -49,7 +49,7 @@ cp step step_$filename
 cp param param_$filename
 cp pos pos_$filename
 
-matlab -r "run('main.m'); exit;" > entropy.out
+/home/qhong7/bin/matlab -r "run('main.m'); exit;" > entropy.out
 
 cd ..
 
