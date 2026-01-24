@@ -8,7 +8,9 @@ set path_src = $sluschipath/mds_src/
 echo $path_src
 
 # 1. python getfile.py <arg1>
+set noglob
 /home/qhong7/anaconda3/bin/python $sluschipath/api/getfile.py $argv[1]
+unset noglob
 
   $path_src/script_v4.csh 0
   # mkdir and cp
@@ -34,10 +36,10 @@ echo $path_src
   sed -i "s/replace_here/$solid\_$temp/" main.m
   sed -i "s|replace_folder_here|$path_src|" main.m
   # run jobsub
-  rm sl*out
+  # rm sl*out
   # sbatch jobsub_master
 
-module load matlab
+#module load matlab
 
 set filename = $solid\_$temp
 echo $filename

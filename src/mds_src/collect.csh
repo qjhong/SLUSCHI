@@ -11,7 +11,7 @@ while ( $l > 0 )
   cd $folder
   pwd
   $path_src/summary.csh
-  cd -
+  cd ..
   sed -i '1d' foldernames
   @ l = `cat foldernames | wc -l`
 end
