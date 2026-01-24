@@ -26,6 +26,6 @@ n_int
 natom
 startExp = log10(round(10/step_unit)); % Starting value of a, in log10 scale
 endExp = log10(round(min(2400/step_unit,niter/4))); % Ending value of b, in log10 scale
-n = 20; % Number of points
+n = 4; % Number of points
 avg_iter_vec = logspace(startExp, endExp, n);
-%run_pdf_v6(system,avg_iter_vec,n_elms);
+run_pdf_v6(system,avg_iter_vec,n_elms);

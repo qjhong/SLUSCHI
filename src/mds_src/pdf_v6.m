@@ -140,7 +140,7 @@ set(gca,'FontSize',FS,'FontName','Times New Roman')%,'ytick',[1000,2000,3000,400
 set(findobj(gcf,'Type','text'),'FontSize',FS,'FontName','Times New Roman');
 set(gcf,'PaperPositionMode','auto')
 set(gcf, 'Color', 'w');
-print('-f1','-r600','-dpng',strcat(filename,'_R_anal','_',num2str(j_iter)));
+print('-f1','-r300','-dpng',strcat(filename,'_R_anal','_',num2str(j_iter)));
 
 % define cutoff
 flag_increase = 0;
@@ -148,7 +148,8 @@ flag_decrease = 0;
 n_NN = 0;
 R_anal0 = R_anal;
 R_anal = R_anal0(:,min(idx_in1,idx_in2),max(idx_in1,idx_in2));
-R_max = max(R_anal);
+R_max = max(R_anal(1:n_R/2));
+%R_anal
 for i = 1:n_R
     %if R_anal(i)>R_anal(i-1)+1e-10 && flag_increase == 0
     if R_anal(i)>R_max-1e-10 && flag_increase == 0
@@ -156,6 +157,8 @@ for i = 1:n_R
     end
     if i>1 && R_anal(i)<R_anal(i-1)-1e-10 && flag_increase == 1 && R_anal(i-1) > 0.1 * R_max % make sure this is a large peak
         flag_decrease = 1;
+        %i
+        %[R_anal(i-1:i)]
     end
     %if flag_increase == 1 && flag_decrease == 1 && R_anal(i)>R_anal(i-1)+1e-10 && max(R_anal(i-1:i)-R_anal(i:i+1)) < 0. % for two "merging" peaks which approach zero after R_cut
     if i>1 && flag_increase == 1 && flag_decrease == 1 && R_anal(i)>R_anal(i-1)+1e-10 && max(R_anal(i-1:i)-R_anal(i:i+1)) < 0. % for two "merging" peaks which approach zero after R_cut
@@ -334,7 +337,7 @@ set(gca,'FontSize',FS,'FontName','Times New Roman')%,'ytick',[1000,2000,3000,400
 set(findobj(gcf,'Type','text'),'FontSize',FS,'FontName','Times New Roman');
 set(gcf,'PaperPositionMode','auto')
 set(gcf, 'Color', 'w');
-print('-f1','-r600','-dpng',strcat(filename,'_count_anal_',elms{idx_in1},'_',elms{idx_in2},'_',num2str(j_iter)));
+print('-f1','-r300','-dpng',strcat(filename,'_count_anal_',elms{idx_in1},'_',elms{idx_in2},'_',num2str(j_iter)));
 
 for i = 1:n_max
     x = i / max(n_NN,i+1);
