@@ -198,15 +198,18 @@ for iter=avg_iter:avg_iter:niter
     for jatom=n_atoms_acc(idx_in2)-n_atoms(idx_in2)+1:n_atoms_acc(idx_in2)
         if iatom ~= jatom
         R = POS_iter(:,iatom)-POS_iter(:,jatom);
+	% minimal-image mapping (vectorized, puts fractional coords in [-0.5,0.5])
         R_frac = invlatt * R;
-        for i = 1:3
-            while R_frac(i) > 0.5
-                R_frac(i) = R_frac(i) - 1.;
-            end
-            while R_frac(i) < -0.5
-                R_frac(i) = R_frac(i) + 1.;
-            end
-        end
+        %R_frac = R_frac - round(R_frac);
+        %R_frac = invlatt * R;
+        %for i = 1:3
+        %    while R_frac(i) > 0.5
+        %        R_frac(i) = R_frac(i) - 1.;
+        %    end
+        %    while R_frac(i) < -0.5
+        %        R_frac(i) = R_frac(i) + 1.;
+        %    end
+        %end
 	%for i1=-1:1
 	%for i2=-1:1
 	%for i3=-1:1
