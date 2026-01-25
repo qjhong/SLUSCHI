@@ -82,8 +82,8 @@ function [n_elms,n_atoms,mass,elms,n_atoms_total,stepsize,T,POS_LONG,LATT_LONG,V
     % Calculate Velocity
     VEL=zeros(3,n_atoms_total,niter); % in A/3 fs
     for iter=1:niter-1
+        VEL(:,:,iter) = POS(:,:,iter+1)-POS(:,:,iter);
         for iatom=1:n_atoms_total
-            VEL(:,iatom,iter) = POS(:,iatom,iter+1)-POS(:,iatom,iter);
             step_cur = stepsize( floor((iter)/80) + 1 );
             if norm(VEL(:,iatom,iter)) > 1.
                 stopflag = 0;min_norm = 100;

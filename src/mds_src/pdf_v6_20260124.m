@@ -28,55 +28,42 @@ for iter=1:niter
     else
         DIST(:,:) = POS(:,:,iter)-POS0;
         latt = LATT( :, :, iter );
-        % minimal-image mapping using fractional coordinates + round()
-        % R_frac = inv(latt) * DIST  gives fractional coords (3 x n_atoms)
-        invlatt = inv(latt);                   % (3x3)
-        R_frac_all = invlatt * DIST;           % (3 x n_atoms)
-	% nearest integer lattice vector for each atom
-   	shift_cells = round(R_frac_all);        % (3 x n_atoms) of integers
-
-   	% convert integer shift back to Cartesian displacement and subtract
-   	% DIST_new = DIST - latt * shift_cells
-   	DIST = DIST - latt * shift_cells;      % (3 x n_atoms)
-
-   	% update POS for this iter
-   	POS(:,:,iter) = POS(:,:,iter-1) + POS0 + DIST;
-        %for iatom=1:n_atoms_total
-        %if norm(DIST(:,iatom)) > 1.
-        %    stopflag = 0;min_norm = 100;
-        %    for i=-1:1
-        %    for j=-1:1
-        %    for k=-1:1
-        %        tmp = DIST(:,iatom);
-        %        % tmp = tmp + LATT( :, :, floor((iter-1)/80) + 1 ) * [i;j;k];
-        %        tmp = tmp + latt * [i;j;k];
-        %        tmp_norm = norm(tmp);
-        %        if tmp_norm < min_norm
-        %            min_norm = min(min_norm,tmp_norm);
-        %            min_tmp = tmp;
-        %        end
-        %        if norm(tmp) < 5.
-        %            stopflag = 1;
-        %            break
-        %        end
-        %    end
-        %    if stopflag==1
-        %        break
-        %    end
-        %    end
-        %    if stopflag==1 
-        %        break
-        %    end
-        %    end
-        %    if stopflag == 0
-        %        %VEL(:,iatom)
-        %        %LATT( :, :, floor((iter-1)/80) + 1 )
-        %        %min_norm
-        %    end
-        %    DIST(:,iatom) = min_tmp;
-        %end
-        %end
-        %POS(:,:,iter) = POS(:,:,iter-1) + POS0 + DIST;
+        for iatom=1:n_atoms_total
+        if norm(DIST(:,iatom)) > 1.
+            stopflag = 0;min_norm = 100;
+            for i=-1:1
+            for j=-1:1
+            for k=-1:1
+                tmp = DIST(:,iatom);
+                % tmp = tmp + LATT( :, :, floor((iter-1)/80) + 1 ) * [i;j;k];
+                tmp = tmp + latt * [i;j;k];
+                tmp_norm = norm(tmp);
+                if tmp_norm < min_norm
+                    min_norm = min(min_norm,tmp_norm);
+                    min_tmp = tmp;
+                end
+                if norm(tmp) < 5.
+                    stopflag = 1;
+                    break
+                end
+            end
+            if stopflag==1
+                break
+            end
+            end
+            if stopflag==1 
+                break
+            end
+            end
+            if stopflag == 0
+                %VEL(:,iatom)
+                %LATT( :, :, floor((iter-1)/80) + 1 )
+                %min_norm
+            end
+            DIST(:,iatom) = min_tmp;
+        end
+        end
+        POS(:,:,iter) = POS(:,:,iter-1) + POS0 + DIST;
     end
     %calculate radial distribution
     if mod(iter,avg_iter*FRAME_STRIDE) == 0
