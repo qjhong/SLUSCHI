@@ -71,14 +71,14 @@ for iter=1:niter
         for jatom=iatom+1:n_atoms_total
             R = POS_iter(:,iatom)-POS_iter(:,jatom);
             R_frac = invlatt * R;
-            for i = 1:3
-                while R_frac(i) > 0.5
-                    R_frac(i) = R_frac(i) - 1.;
-                end
-                while R_frac(i) < -0.5
-                    R_frac(i) = R_frac(i) + 1.;
-                end
-            end
+            %for i = 1:3
+            %    while R_frac(i) > 0.5
+            %        R_frac(i) = R_frac(i) - 1.;
+            %    end
+            %    while R_frac(i) < -0.5
+            %        R_frac(i) = R_frac(i) + 1.;
+            %    end
+            %end
 	    %for i1=-1:1
 	    %for i2=-1:1
 	    %for i3=-1:1
@@ -188,7 +188,10 @@ n_max = 100;
 count_anal = zeros(n_max,1);
 %n_atoms_acc(idx_in1)-n_atoms(idx_in1)+1,n_atoms_acc(idx_in1)
 %n_atoms_acc(idx_in2)-n_atoms(idx_in2)+1,n_atoms_acc(idx_in2)
-for iter=avg_iter:avg_iter:niter
+% === Downsampling controls (tune these) ===
+% Process every FRAME_STRIDE-th averaged frame (1 = all, 2 = half, 5 = 1/5, etc.)
+FRAME_STRIDE = max(1,round(niter/avg_iter/300));
+for iter=avg_iter:avg_iter*FRAME_STRIDE:niter
     latt = LATT( :, :, iter );
     invlatt = inv(latt);
     POS_iter = POS(:,:,iter);
