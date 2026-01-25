@@ -79,12 +79,10 @@ for iter=1:niter
                     R_frac(i) = R_frac(i) + 1.;
                 end
             end
-	    %for i1=-1:1
-	    %for i2=-1:1
-	    %for i3=-1:1
-	    % old: loop for i =1:3 adjust >0.5 or < -0.5
-            R_frac = R_frac - round(R_frac);   % now components in [-0.5,0.5]
-            R = latt * R_frac;
+	    for i1=-1:1
+	    for i2=-1:1
+	    for i3=-1:1
+            R = latt * (R_frac + [i1;i2;i3]);
             min_norm = norm(R);
             if min_norm < R_max
                 idx = ceil(min_norm/dR);
@@ -98,11 +96,11 @@ for iter=1:niter
                         break
                     end
                 end                
-	        R_anal(idx,i_elm,j_elm) = R_anal(idx,i_elm,j_elm) + 1;
+		R_anal(idx,i_elm,j_elm) = R_anal(idx,i_elm,j_elm) + 1;
             end
-	    %end
-	    %end
-	    %end
+	    end
+	    end
+	    end
         end
         end
     end
