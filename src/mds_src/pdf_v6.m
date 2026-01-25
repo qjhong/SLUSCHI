@@ -207,10 +207,12 @@ for iter=avg_iter:avg_iter:niter
                 R_frac(i) = R_frac(i) + 1.;
             end
         end
-	for i1=-1:1
-	for i2=-1:1
-	for i3=-1:1
-        R = latt * (R_frac + [i1;i2;i3]);
+	%for i1=-1:1
+	%for i2=-1:1
+	%for i3=-1:1
+	% old: loop for i =1:3 adjust >0.5 or < -0.5
+        R_frac = R_frac - round(R_frac);   % now components in [-0.5,0.5]
+        R = latt * R_frac ;
         min_norm = norm(R);
         %R_list(jatom) = min_norm;
         if min_norm < R_cut
@@ -218,9 +220,9 @@ for iter=avg_iter:avg_iter:niter
             R_list(count) = min_norm;
         end
         end
-        end
-        end
-        end
+        %end
+        %end
+        %end
     end
     % % for solid, adjust count
     % if flag_solid == 1
