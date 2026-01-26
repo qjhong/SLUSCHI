@@ -7,15 +7,6 @@ set sluschipath = `grep sluschipath ~/.sluschi.rc | cut -d'=' -f2`
 set path_src = $sluschipath/mds_src/
 echo $path_src
 
-echo ""
-echo "========================================"
-echo "        SLUSCHI by Qi-Jun Hong"
-echo "========================================"
-echo ""
-set TIMESTAMP = `date -u +%Y%m%dT%H%M%SZ`
-set ORIG_SCRIPT = "${path_src}/mds_master.csh"
-echo "=== SLUSCHI MDS ENTROPY ANALYSIS START: ${TIMESTAMP} ==="
-echo "Running: ${ORIG_SCRIPT}"
 
 # 1. python getfile.py <arg1>
 set noglob
@@ -61,7 +52,19 @@ cp pos pos_$filename
 
 cd ..
 
+echo ""
+echo "========================================"
+echo "        SLUSCHI by Qi-Jun Hong"
+echo "========================================"
+echo ""
+set TIMESTAMP = `date -u +%Y%m%dT%H%M%SZ`
+set ORIG_SCRIPT = "${path_src}/mds_master.csh"
+echo "=== SLUSCHI MDS ENTROPY ANALYSIS START: ${TIMESTAMP} ==="
+echo "Running: ${ORIG_SCRIPT}"
+
 $sluschipath/mds_src/collect.csh
+
+cp entropy/* .
 
 # Final marker line
 set EXITCODE=0
