@@ -15,7 +15,7 @@ echo ""
 set TIMESTAMP = `date -u +%Y%m%dT%H%M%SZ`
 set ORIG_SCRIPT = "${path_src}/master.csh"
 echo "=== SLUSCHI MDS ENTROPY ANALYSIS START: ${TIMESTAMP} ==="
-echo "Running: ${ORIG_SCRIPT} ${ARG}"
+echo "Running: ${ORIG_SCRIPT}"
 
 find . -name Dir_VolSearch > foldernames                                              
                                                                                 
