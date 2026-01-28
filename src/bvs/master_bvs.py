@@ -192,11 +192,29 @@ def main(argv):
 
     try:
         # 1) run bvs.py
+        # --- run bvs.py and tee stdout to bvs.txt ---
+        bvs_txt_path = os.path.join(job_dir, "bvs.txt")
+        
         cmd1 = [sys.executable, "/home/qhong7/github/SLUSCHI/src/bvs/bvs.py", cif_basename]
-        rc1, out1, err1 = run_cmd_streaming(cmd1, cwd=job_dir, env=env, stdout_path=stdout_path, stderr_path=stderr_path)
+        
+        rc1, out1, err1 = run_cmd_streaming(
+            cmd1,
+            cwd=job_dir,
+            env=env,
+            stdout_path=stdout_path,
+            stderr_path=stderr_path,
+        )
+        
+        # write bvs stdout explicitly to bvs.txt
+        try:
+            with open(bvs_txt_path, "w") as f:
+                f.write("".join(out1))
+        except Exception:
+            pass
+        
         stdout_buf_total.extend(out1)
         stderr_buf_total.extend(err1)
-
+        
         if rc1 != 0:
             retcode = rc1
             raise RuntimeError(f"bvs.py failed with return code {rc1}")
