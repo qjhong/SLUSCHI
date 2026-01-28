@@ -202,14 +202,14 @@ def main(argv):
             raise RuntimeError(f"bvs.py failed with return code {rc1}")
 
         # 2) run plot_bvs.py (assumes it reads bvs outputs in cwd)
-        cmd2 = [sys.executable, "plot_bvs.py"]
+        cmd2 = [sys.executable, "/home/qhong7/github/SLUSCHI/src/bvs/plot_bvs.py"]
         rc2, out2, err2 = run_cmd_streaming(cmd2, cwd=job_dir, env=env, stdout_path=stdout_path, stderr_path=stderr_path)
         stdout_buf_total.extend(out2)
         stderr_buf_total.extend(err2)
 
         if rc2 != 0:
             retcode = rc2
-            raise RuntimeError(f"/home/qhong7/github/SLUSCHI/src/bvs/plot_bvs.py failed with return code {rc2}")
+            raise RuntimeError(f"plot_bvs.py failed with return code {rc2}")
 
         retcode = 0
 
