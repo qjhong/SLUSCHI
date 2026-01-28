@@ -139,4 +139,4 @@ plt.show()
 # ---- Save figure (optional) ----
 fig.savefig("bvs.png", dpi=300, bbox_inches='tight')
 #fig.savefig("bvs_mirrored_from_text.svg", format='svg')
-print("Saved bvs_mirrored_from_text.png")
+print("Saved bvs.png")
