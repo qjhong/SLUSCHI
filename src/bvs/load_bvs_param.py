@@ -302,7 +302,7 @@ def get_bvs_params(cif_text: str,
         key_u = tuple(sorted((A_s, B_s)))
         values = pool.get(key_u, [])
         if not values:
-            print(f"Warning: no BVPARM entry found for pair ({A},{B}) in CIF.")
+            #print(f"Warning: no BVPARM entry found for pair ({A},{B}) in CIF.")
             continue
         Ro_list = [v[0] for v in values]
         B_list = [v[1] for v in values]

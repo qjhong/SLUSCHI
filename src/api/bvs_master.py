@@ -12,7 +12,7 @@ def main():
     run([sys.executable, "/home/qhong7/github/SLUSCHI/src/mds_src/getfile.py", sys.argv[1]])
 
     # 2. script_v4.csh 0
-    run(["mv", "OUTCAR_collect str.cif"])
+    run(["mv", "OUTCAR_collect", "str.cif"])
 
     # 3. python diffusion.py
     run([sys.executable, "/home/qhong7/github/SLUSCHI/src/bvs/master_bvs.py", "str.cif"])
