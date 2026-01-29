@@ -31,103 +31,113 @@ import sys
 from typing import List, Tuple, Optional
 import os
 
-def run_cmd_streaming(cmd: List[str],
-                      cwd: Optional[str] = None,
-                      env: Optional[dict] = None,
-                      stdout_capture_path: Optional[str] = None,
-                      timeout: Optional[float] = None
-                      ) -> Tuple[int, str, str]:
-    """
-    Run cmd (list) and stream stdout/stderr live to the console while also
-    capturing them. Writes stdout to stdout_capture_path if provided.
+# Replace/insert this implementation for run_cmd_streaming
+import subprocess
+import os
 
-    Returns: (returncode, full_stdout, full_stderr)
-    """
-    # Ensure we call the right interpreter if cmd is a python script invocation.
-    # If callers already include sys.executable, this is a no-op.
-    if isinstance(cmd, (list, tuple)) and len(cmd) >= 1 and cmd[0].endswith("python"):
-        cmd[0] = sys.executable
-
-    # Make a safe copy of env
-    env_copy = os.environ.copy() if env is None else dict(env)
-
-    # Ensure child does not inherit an open stdin (prevents interactive hangs)
-    proc = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        stdin=subprocess.DEVNULL,
-        cwd=cwd,
-        env=env_copy,
-        bufsize=1,  # line-buffered
-        universal_newlines=True  # text mode
-    )
-
-    stdout_lines = []
-    stderr_lines = []
-
-    # Helper to read stderr in a thread (so we can stream both without deadlock)
-    def _read_stderr():
-        try:
-            for line in proc.stderr:
-                if line is None:
-                    break
-                stderr_lines.append(line)
-                # print stderr lines to stderr immediately
-                sys.stderr.write(line)
-                sys.stderr.flush()
-        except Exception:
-            pass
-
-    stderr_thread = threading.Thread(target=_read_stderr, daemon=True)
-    stderr_thread.start()
-
-    # Stream stdout line-by-line; write to capture file if requested
-    if stdout_capture_path:
-        try:
-            fh = open(stdout_capture_path, "w", encoding="utf-8")
-        except Exception:
-            fh = None
-    else:
-        fh = None
-
+def _tail_of_file(path: str, max_bytes: int = 8192) -> str:
+    """Return the last max_bytes of file as text (utf-8 with errors replaced)."""
     try:
-        if proc.stdout is None:
-            # No stdout to read; wait and collect stderr instead
-            proc.wait(timeout=timeout)
-        else:
-            for line in proc.stdout:
-                if line is None:
-                    break
-                stdout_lines.append(line)
-                # print to stdout immediately
-                sys.stdout.write(line)
-                sys.stdout.flush()
-                if fh:
-                    fh.write(line)
-            # ensure stdout iterator drained
-            proc.stdout.close()
-            # wait for process to finish
-            proc.wait(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        proc.kill()
-        proc.wait()
-        stderr_thread.join(timeout=1.0)
-        if fh:
-            fh.close()
-        full_out = "".join(stdout_lines)
-        full_err = "".join(stderr_lines)
-        return proc.returncode, full_out, full_err
-    finally:
-        if fh:
-            fh.close()
+        size = os.path.getsize(path)
+        start = max(0, size - max_bytes)
+        with open(path, "rb") as fh:
+            fh.seek(start)
+            data = fh.read()
+        # decode with replacement to avoid decode errors
+        return data.decode("utf-8", errors="replace")
+    except Exception:
+        return ""
 
-    # Ensure stderr thread has finished reading
-    stderr_thread.join(timeout=1.0)
+def run_cmd_streaming(cmd,
+                      cwd: str = None,
+                      env: dict = None,
+                      stdout_capture_path: str = None,
+                      stderr_capture_path: str = None,
+                      tail_bytes: int = 8192,
+                      check: bool = False,
+                      timeout: float = None):
+    """
+    Run command while streaming stdout/stderr to files to avoid pipe-blocking.
 
-    full_out = "".join(stdout_lines)
-    full_err = "".join(stderr_lines)
-    return proc.returncode, full_out, full_err
+    Parameters
+    ----------
+    cmd : list or str
+        Command to run (list is preferred).
+    cwd : str
+        Working directory.
+    env : dict
+        Environment variables (if None defaults to os.environ).
+    stdout_capture_path : str
+        Path to file where stdout will be written. If None, uses ./cmd_stdout.log.
+    stderr_capture_path : str
+        Path to file where stderr will be written. If None, uses ./cmd_stderr.log.
+    tail_bytes : int
+        How many trailing bytes to read back and return for stdout/stderr.
+    check : bool
+        If True, raise CalledProcessError on non-zero exit (like subprocess.run).
+    timeout : float
+        Optional timeout in seconds to kill the process.
+
+    Returns
+    -------
+    (rc, stdout_tail, stderr_tail)
+        rc : int return code
+        stdout_tail, stderr_tail : str (decoded tail of the file)
+    """
+    if env is None:
+        env = os.environ.copy()
+    else:
+        # make a shallow copy so we don't mutate caller's env
+        tmp_env = os.environ.copy()
+        tmp_env.update(env)
+        env = tmp_env
+
+    if stdout_capture_path is None:
+        stdout_capture_path = os.path.join(cwd or os.getcwd(), "cmd_stdout.log")
+    if stderr_capture_path is None:
+        stderr_capture_path = os.path.join(cwd or os.getcwd(), "cmd_stderr.log")
+
+    # Ensure parent directory exists
+    os.makedirs(os.path.dirname(os.path.abspath(stdout_capture_path)), exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(stderr_capture_path)), exist_ok=True)
+
+    # Open files in append mode so previous content is preserved (or use 'wb' to overwrite)
+    # Use binary mode to avoid issues with encoding while writing raw bytes.
+    with open(stdout_capture_path, "ab") as fh_out, open(stderr_capture_path, "ab") as fh_err:
+        try:
+            # If cmd is a string, let shell=False call it directly; prefer list input when possible.
+            # Here we use subprocess.run with stdout/stderr redirected to files -> no pipes to block.
+            completed = subprocess.run(
+                cmd,
+                cwd=cwd,
+                env=env,
+                stdout=fh_out,
+                stderr=fh_err,
+                check=False,
+                timeout=timeout,
+                shell=isinstance(cmd, str)
+            )
+            rc = completed.returncode
+        except subprocess.TimeoutExpired as te:
+            rc = -9
+            # write a timeout message into stderr file
+            fh_err.write(f"\n*** TIMEOUT after {timeout} seconds ***\n".encode("utf-8", errors="replace"))
+            fh_err.flush()
+        except Exception as e:
+            rc = -1
+            fh_err.write(f"\n*** EXCEPTION running command: {e} ***\n".encode("utf-8", errors="replace"))
+            fh_err.flush()
+
+    # Return small tails so caller can log or inspect messages without huge memory usage
+    stdout_tail = _tail_of_file(stdout_capture_path, max_bytes=tail_bytes)
+    stderr_tail = _tail_of_file(stderr_capture_path, max_bytes=tail_bytes)
+
+    if check and rc != 0:
+        # mimic subprocess.run(check=True) behavior
+        raise subprocess.CalledProcessError(rc, cmd, output=stdout_tail, stderr=stderr_tail)
+
+    return rc, stdout_tail, stderr_tail
+
 def main(argv):
     if len(argv) < 2:
         sys.stderr.write("Usage: master_bvs.py <str.cif>\n")

@@ -354,7 +354,7 @@ if __name__ == '__main__':
     out = load_bvs_params_from_file(args.cif, pairs=pairs, format=args.format)
     if args.format == 'dict':
         print("Loaded BUILTIN_PARAMS entries:")
-        for k,v in out.items():
-            print(f"  {k}: Ro={v[0]}, B={v[1]}")
+        #for k,v in out.items():
+        #    print(f"  {k}: Ro={v[0]}, B={v[1]}")
     else:
         print(out)

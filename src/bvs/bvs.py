@@ -62,10 +62,10 @@ with open(get_sluschi_src() + '/bvs/bvparam2020.cif', 'r', encoding='utf-8') as 
 BUILTIN_PARAMS = lb.get_bvs_params(cif_text, pairs=None, format='dict')
 
 # Print the loaded parameter entries (these are the base parameters available)
-print("\nLoaded BUILTIN_PARAMS entries from bvparam file:")
 if BUILTIN_PARAMS:
-    for (A, B), (Ro_val, Bval) in sorted(BUILTIN_PARAMS.items(), key=lambda x: (x[0][0], x[0][1])):
-        print(f"  Pair {A}-{B}: Ro={Ro_val}, B={Bval}")
+    print("\nLoaded BUILTIN_PARAMS entries from bvparam file:")
+    #for (A, B), (Ro_val, Bval) in sorted(BUILTIN_PARAMS.items(), key=lambda x: (x[0][0], x[0][1])):
+    #    print(f"  Pair {A}-{B}: Ro={Ro_val}, B={Bval}")
 else:
     print("  (no parameters loaded)")
 
