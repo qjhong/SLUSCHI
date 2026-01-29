@@ -24,45 +24,110 @@ import traceback
 BVS_PY = os.path.join(os.path.dirname(__file__), "bvs.py")          # src/bvs/bvs.py
 PLOT_BVS_PY = os.path.join(os.path.dirname(__file__), "plot_bvs.py")  # src/bvs/plot_bvs.py
 
-def run_cmd_streaming(cmd, cwd=None, env=None, stdout_capture_path=None):
+# paste/replace this function into master_bvs.py
+import subprocess
+import threading
+import sys
+from typing import List, Tuple, Optional
+import os
+
+def run_cmd_streaming(cmd: List[str],
+                      cwd: Optional[str] = None,
+                      env: Optional[dict] = None,
+                      stdout_capture_path: Optional[str] = None,
+                      timeout: Optional[float] = None
+                      ) -> Tuple[int, str, str]:
     """
-    Run command list `cmd`, stream stdout/stderr to the current process' stdout/stderr,
-    and also capture stdout lines (returned). If stdout_capture_path is given, write the
-    captured stdout to that path at the end.
-    Returns (returncode, stdout_lines, stderr_lines)
+    Run cmd (list) and stream stdout/stderr live to the console while also
+    capturing them. Writes stdout to stdout_capture_path if provided.
+
+    Returns: (returncode, full_stdout, full_stderr)
     """
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=cwd, env=env)
+    # Ensure we call the right interpreter if cmd is a python script invocation.
+    # If callers already include sys.executable, this is a no-op.
+    if isinstance(cmd, (list, tuple)) and len(cmd) >= 1 and cmd[0].endswith("python"):
+        cmd[0] = sys.executable
+
+    # Make a safe copy of env
+    env_copy = os.environ.copy() if env is None else dict(env)
+
+    # Ensure child does not inherit an open stdin (prevents interactive hangs)
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
+        cwd=cwd,
+        env=env_copy,
+        bufsize=1,  # line-buffered
+        universal_newlines=True  # text mode
+    )
+
     stdout_lines = []
     stderr_lines = []
-    try:
-        # read lines until process exits
-        while True:
-            out = proc.stdout.readline()
-            err = proc.stderr.readline()
-            if out:
-                # stream to parent stdout and capture
-                sys.stdout.write(out)
-                sys.stdout.flush()
-                stdout_lines.append(out)
-            if err:
-                sys.stderr.write(err)
-                sys.stderr.flush()
-                stderr_lines.append(err)
-            if proc.poll() is not None and not out and not err:
-                break
-        rc = proc.wait()
-        # write captured stdout to file if requested
-        if stdout_capture_path:
-            try:
-                with open(stdout_capture_path, "w") as f:
-                    f.write("".join(stdout_lines))
-            except Exception as e:
-                sys.stderr.write(f"Warning: failed to write {stdout_capture_path}: {e}\n")
-        return rc, stdout_lines, stderr_lines
-    except Exception:
-        proc.kill()
-        raise
 
+    # Helper to read stderr in a thread (so we can stream both without deadlock)
+    def _read_stderr():
+        try:
+            for line in proc.stderr:
+                if line is None:
+                    break
+                stderr_lines.append(line)
+                # print stderr lines to stderr immediately
+                sys.stderr.write(line)
+                sys.stderr.flush()
+        except Exception:
+            pass
+
+    stderr_thread = threading.Thread(target=_read_stderr, daemon=True)
+    stderr_thread.start()
+
+    # Stream stdout line-by-line; write to capture file if requested
+    if stdout_capture_path:
+        try:
+            fh = open(stdout_capture_path, "w", encoding="utf-8")
+        except Exception:
+            fh = None
+    else:
+        fh = None
+
+    try:
+        if proc.stdout is None:
+            # No stdout to read; wait and collect stderr instead
+            proc.wait(timeout=timeout)
+        else:
+            for line in proc.stdout:
+                if line is None:
+                    break
+                stdout_lines.append(line)
+                # print to stdout immediately
+                sys.stdout.write(line)
+                sys.stdout.flush()
+                if fh:
+                    fh.write(line)
+            # ensure stdout iterator drained
+            proc.stdout.close()
+            # wait for process to finish
+            proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+        stderr_thread.join(timeout=1.0)
+        if fh:
+            fh.close()
+        full_out = "".join(stdout_lines)
+        full_err = "".join(stderr_lines)
+        return proc.returncode, full_out, full_err
+    finally:
+        if fh:
+            fh.close()
+
+    # Ensure stderr thread has finished reading
+    stderr_thread.join(timeout=1.0)
+
+    full_out = "".join(stdout_lines)
+    full_err = "".join(stderr_lines)
+    return proc.returncode, full_out, full_err
 def main(argv):
     if len(argv) < 2:
         sys.stderr.write("Usage: master_bvs.py <str.cif>\n")
