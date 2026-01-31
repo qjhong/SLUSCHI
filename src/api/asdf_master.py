@@ -19,7 +19,7 @@ def main():
     run(["cp", "/home/qhong7/github/asdf/src/run_scripts/jobsub_master.sh", "."])
 
     # 2. script_v4.csh 0
-    n = 17
+    n = 51
     run(["/usr/bin/bash", "./driver.sh", str(n), "OUTCAR_collect"])
 
     run(["grep", "Entropy per mol", "all_jobs.out"])

@@ -422,3 +422,11 @@ for i = 1:size(count_anal,1)
 end
 S_plogp_merge2 = sum(count_anal5.*log(count_anal5+0.00001))*8.314/2*-1;
 %[S_xlogx,S_plogp,S_plogp_merge1,S_plogp_merge2]
+
+isave=99;
+if isave > 0;
+   ssname = strcat(filename,'_count_', elms{idx_in1},'_', elms{idx_in2}, '.txt');
+   eval(['save ' ssname ' res_count -ascii']);
+
+   ssname=strcat(filename,'_RDF.txt'); eval(['save ' ssname ' res_rr -ascii']);
+end

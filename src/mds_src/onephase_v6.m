@@ -212,3 +212,9 @@ fprintf(fid, '%6.2e\n', F_2/area*3/eV);
 end
 end
 fclose(fid);
+
+isave=99;
+if isave >0
+ssname=strcat(filename,'_S.txt');     eval(['save ' ssname ' res_ss -ascii']);
+ssname=strcat(filename,'_Phon.txt');  eval(['save ' ssname ' res_phon -ascii']);
+end
