@@ -34,6 +34,9 @@ def main():
     
     with open("all_jobs.out") as f:
         for line in f:
+            if "Total:" in line:
+                parts = line.split()
+                correction = float(parts[1])
             if "Entropy per mol" in line:
                 parts = line.split()
                 if len(parts) >= 6:
@@ -48,7 +51,7 @@ def main():
     values.sort()
     
     median_index = n // 2
-    result = values[median_index]
+    result = values[median_index] + correction
     
     print('The median value of entropy is ' + str(result) + 'J/K/mol.')
 
