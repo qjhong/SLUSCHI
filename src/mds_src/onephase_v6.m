@@ -115,6 +115,7 @@ end
 n = n_atoms_total;
 V = V/n*1e-30;
 fid = fopen('phonon_dos_v6.out','w');
+res_ss=[]; res_phon=[];
 for i_elm = 1:n_elms
 lambda = sqrt(h^2/(2*pi*mass(i_elm)*k_B*T));
 S_id(i_elm)=(5/2 + log(V/lambda^3) )*k_B*6.023e23;
@@ -163,6 +164,7 @@ for i=1:idx_SS
 end
 close
 plot(nunu,SS)
+res_phon=[res_phon, nunu', SS'];
 grid on
 FS=16;
 xlabel('$\nu$ [s$^{-1}$]','Interpreter','Latex')
@@ -175,11 +177,17 @@ set(gcf, 'Color', 'w');
 print('-f1','-r600','-dpng',strcat(filename,'_phonon_DOS_',elms{i_elm}));
 close
 plot(nunu,k_B*(1 - log( 2 * sinh( h*nunu / (2*k_B*T) ) ))*6.023e23)
+asdf1=k_B*(1 - log( 2 * sinh( h*nunu / (2*k_B*T) ) ))*6.023e23;
+res_ss =[res_ss, nunu', asdf1'];
 %pause(10)
 close
 plot(nunu,F_1/area*3/eV,'b')
+asdf2=F_1/area*3/eV;
+res_ss =[res_ss,  asdf2];
 hold on
 plot(nunu,F_2/area*3/eV,'r')
+asdf3=F_2/area*3/eV;
+res_ss =[res_ss,  asdf3];
 grid on
 xlabel('$\nu$ [s$^{-1}$]','Interpreter','Latex')
 ylabel('$dF_{vib}/d\nu$','Interpreter','Latex')

@@ -146,8 +146,10 @@ end
 end
 end
 close
+res_rr=R_x';
 for i_elm = 1:n_elms
 for j_elm = i_elm:n_elms
+    res_rr=[res_rr, R_anal(:,i_elm,j_elm)];
     plot(R_x,R_anal(:,i_elm,j_elm));hold on
 end
 end
@@ -197,6 +199,7 @@ n_NN;
 R_cut0 = R_cut;
 
 % calcualte radial distribution
+res_count=[ ];
 n_R_cut = 0;
 S_R_cut = zeros(n_R_cut,1);
 for i_R_cut = 0:n_R_cut
@@ -353,6 +356,7 @@ S = 0;
 count_anal;
 count_anal = count_anal / sum(count_anal);
 bar(count_anal)
+res_count=[res_count, count_anal];
 xlabel('$n$','Interpreter','Latex')
 ylabel('$P_n$','Interpreter','Latex')
 ylim([0,1])
