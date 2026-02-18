@@ -8,10 +8,11 @@ find . -name 'entropy*' | grep -v entropy.out > foldernames
 
 while ( $l > 0 )
   set folder = `head -1 foldernames`
+  set curr_folder = `pwd`
   cd $folder
   pwd
   $path_src/summary.csh
-  cd ..
+  cd $curr_folder
   sed -i '1d' foldernames
   @ l = `cat foldernames | wc -l`
 end
