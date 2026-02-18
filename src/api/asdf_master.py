@@ -10,7 +10,7 @@ def run(cmd, shell=False):
 
 def main():
     # 1. python getfile.py
-    run([sys.executable, "/home/qhong7/github/SLUSCHI/src/mds_src/getfile.py", sys.argv[1]])
+    run([sys.executable, "/home/qhong7/github/SLUSCHI/src/api/getfile.py", sys.argv[1]])
 
     # 2. script_v4.csh 0
     env = os.environ.copy()
