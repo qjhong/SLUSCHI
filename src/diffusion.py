@@ -48,7 +48,7 @@ def read_natoms():
     Line = file.readline()
     Line = file.readline()
     #print(Line)
-    tmp = Line.split('  ')
+    tmp = Line.split(' ')
     #print(tmp)
     natoms = [int(item.replace(" ", "").replace("\n", "")) for item in tmp if item != ""]
     print('Number of Atoms: ',natoms)
