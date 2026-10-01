@@ -1,34 +1,28 @@
+FC = gfortran
+FFLAGS ?=
+LDFLAGS ?=
+LDLIBS ?=
 
-CC = ifort
+SRC := $(wildcard *.f90)
+TAR := $(SRC:.f90=.x)
+SCRIPTS := SLUSCHI StartJob $(wildcard autojob*) getinfo.csh
 
-SRC = $(wildcard *.f90)
-TAR = $(SRC:.f90=.x)
+BINDIR ?= $(HOME)/bin
+RCFILE ?= $(HOME)/.sluschi.rc
 
-.PHONY: all clean
+.PHONY: all install clean
 
 all: $(TAR)
-	echo set sluschipath=$(PWD) > $(HOME)/.sluschi.rc
-	cp SLUSCHI StartJob autojob* getinfo.csh $(HOME)/bin
-	@echo "Checking if DIRECTORY is already in PATH..."
-	@if grep -q 'export PATH=$$PATH:$(PWD)' ~/.bashrc; then \
-		echo "DIRECTORY is already in PATH."; \
-	else \
-		echo "Adding DIRECTORY to PATH..."; \
-		echo "export PATH=$$PATH:$(PWD)" | tee -a $(HOME)/.bashrc; \
-		echo "DIRECTORY added to PATH. Please restart your shell."; \
-	fi
-	@if grep -q 'export PATH=$$PATH:$(PWD)' ~/.zshrc; then \
-		echo "DIRECTORY is already in PATH."; \
-	else \
-		echo "Adding DIRECTORY to PATH..."; \
-		echo "export PATH=$$PATH:$(PWD)" | tee -a $(HOME)/.zshrc; \
-		echo "DIRECTORY added to PATH. Please restart your shell."; \
-	fi
 
 %.x: %.f90
-	$(CC) -o $@ $<
+	$(FC) $(FFLAGS) $(LDFLAGS) -o "$@" "$<" $(LDLIBS)
+
+install: all
+	mkdir -p "$(BINDIR)"
+	cp $(SCRIPTS) "$(BINDIR)/"
+	printf 'set sluschipath=%s\n' "$(CURDIR)" > "$(RCFILE)"
+	@printf '\nFor Bash or Zsh, add this line once to your shell startup file:\n'
+	@printf 'export PATH="$$PATH:%s:%s"\n' "$(CURDIR)" "$(BINDIR)"
 
 clean:
 	rm -f $(TAR)
-	rm $(HOME)/bin/{SLUSCHI,StartJob,autojob_cont,getinfo.csh}
-
